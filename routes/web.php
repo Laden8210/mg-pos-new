@@ -43,7 +43,7 @@ Route::middleware('auth')->group(function () {
 
     // Reports
     Route::get('/inventory_report', [POSController::class, 'showInventoryReport'])->name('inventory_report');
-    Route::get('/reorder_list_report', [POSController::class, 'reorderListReport'])->name('order_list_report');
+    Route::get('/reorder_list_report', [POSController::class, 'reorderListReport'])->name('reorder_list_report');
     Route::get('/order_list_report', [POSController::class, 'showOrderList'])->name('order_list_report');
     Route::get('/fast_moving_item_report', [POSController::class, 'fastMovingItemReport'])->name('fast_moving_item_report');
     Route::get('/slow_moving_item_report', [POSController::class, 'slowMovingItemReport'])->name('slow_moving_item_report');
