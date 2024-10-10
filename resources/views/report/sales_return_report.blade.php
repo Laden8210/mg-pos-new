@@ -69,7 +69,7 @@
                             class="form-control">
                             <input type="hidden" name="end_date" value="{{ request('end_date', now()->toDateString()) }}"
                             class="form-control" >
-                          <button class="btn btn-success">Print</button>
+                            <button class="btn btn-success">Print</button>
 
                         </form>
                     </div>

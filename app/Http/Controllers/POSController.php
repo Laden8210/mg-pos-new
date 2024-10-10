@@ -61,13 +61,15 @@ class POSController extends Controller
         $startDate = $request->input('start_date') ?? null;
         $endDate = $request->input('end_date') ?? null;
 
-        $purchasedOrders = PurchaseOrder::with(['supplier', 'items.item'])
+        $purchasedOrders = PurchaseOrder::with(['supplier', 'items.item', 'items.inventory'])
         ->when($startDate, function ($query) use ($startDate) {
             return $query->where('delivery_date', '>=', $startDate);
         })
         ->when($endDate, function ($query) use ($endDate) {
             return $query->where('delivery_date', '<=', $endDate);
         })->get();
+
+
         return view('report.order_list_report', compact('purchasedOrders'));
     }
 

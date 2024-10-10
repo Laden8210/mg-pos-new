@@ -143,7 +143,7 @@
         <hr>
 
         <div class="total-container" style="display: flex; justify-content: space-between;">
-            <h4 style="margin: 0;">Discount</h4>
+            <h4 style="margin: 0;">Vat</h4>
             <h4 style="margin: 0; text-align: right;">P {{ number_format($discount ?? 0, 2) }}</h4>
         </div>
 
@@ -152,7 +152,7 @@
             <h4 style="margin: 0; text-align: right;">P {{ number_format($amountTendered, 2) }}</h4>
         </div>
 
-        
+
         <div class="total-container" style="display: flex; justify-content: space-between;">
             <h4 style="margin: 0;">Change</h4>
             <h4 style="margin: 0; text-align: right;">P {{ number_format($change, 2) }}</h4>

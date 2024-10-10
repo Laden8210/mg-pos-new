@@ -250,7 +250,7 @@ class SaleTransaction extends Component
     private function generateTransactionNumber()
     {
         // Generate a unique transaction number
-        return 'TRN' . now()->format('YmdHis');
+        return 'INV-' . now()->format('YmdHis');
     }
 
 

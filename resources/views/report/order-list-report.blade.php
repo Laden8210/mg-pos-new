@@ -144,12 +144,13 @@
                 <th>UNIT PRICE</th>
                 <th>TOTAL COST</th>
                 <th>DELIVER DATE</th>
+                <th>QTY REORDER</th>
             </thead>
             <tbody>
                 @foreach ($purchasedOrders as $purchaseOrder)
                     @foreach ($purchaseOrder->purchaseItems as $purchaseItem)
                         <tr>
-                            <td>{{ $purchaseOrder->purchase_number }}</td>
+                            <td>{{ $purchaseItem->purchase_item_id }}</td>
                             <td>{{ $purchaseOrder->supplier->CompanyName }}</td>
                             <td>{{ $purchaseOrder->order_date }}</td>
                             <td>{{ $purchaseItem->item->itemName     }}</td>
@@ -157,6 +158,7 @@
                             <td>{{ $purchaseItem->item->unitPrice}}</td>
                             <td>{{$purchaseItem->total_price}}</td>
                             <td>{{ $purchaseOrder->delivery_date }}</td>
+                            <td>{{ $purchaseItem->inventory->original_quantity}}</td>
                             {{-- <td>{{  }}</td>
                             <td>{{  }}</td> --}}
                         </tr>

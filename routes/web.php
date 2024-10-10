@@ -82,3 +82,5 @@ Route::get('/print-stock_movement_report', [InvoiceController::class, 'generateS
 
 Route::get('/most-selling-items', [POSController::class, 'mostSellingItems'])->name('most.selling.items');
 
+Route::get('/print-purchase-order/{items}', [InvoiceController::class, 'printOrderReceipt'])->name('print-purchase-order');
+

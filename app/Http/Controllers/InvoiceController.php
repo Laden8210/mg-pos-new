@@ -6,9 +6,11 @@ use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\StockCard;
 use App\Models\Inventory;
+use App\Models\Item;
 use App\Models\PurchaseOrder;
 use App\Models\Transactions;
-
+use App\Models\PurchaseItem;
+use Illuminate\Support\Facades\Auth;
 class InvoiceController extends Controller
 {
     // protected $printerService;
@@ -35,6 +37,24 @@ class InvoiceController extends Controller
         // Download the generated PDF
         return $pdf->stream('invoice.pdf');
     }
+
+    public function printOrderReceipt($purchase_number)
+    {
+
+        $purchaseOrder = PurchaseOrder::with(['supplier', 'items.item'])
+            ->where('purchase_number', $purchase_number)
+            ->first();
+
+        $employee = Auth::user()->firstname . ' '. Auth::user()->lastname;
+
+        $pdf = Pdf::loadView('supplier.purchaseOrderReceipt', compact('purchaseOrder', 'employee'));
+
+        // Stream the generated PDF
+
+        return $pdf->stream('purchase_order.pdf');
+    }
+
+
     public function generateSalesReport(Request $request)
     {
 
@@ -137,15 +157,13 @@ class InvoiceController extends Controller
         $startDate = $request->input('start_date') ?? null;
         $endDate = $request->input('end_date') ?? null;
 
-        $purchaseOrders = PurchaseOrder::with(['supplier', 'items.item'])
+        $purchaseOrders = PurchaseOrder::with(['supplier', 'items.item', 'items.inventory'])
         ->when($startDate, function ($query) use ($startDate) {
             return $query->where('delivery_date', '>=', $startDate);
         })
         ->when($endDate, function ($query) use ($endDate) {
             return $query->where('delivery_date', '<=', $endDate);
         })->get();
-
-        // Prepare data for the view
 
 
         $pdf = Pdf::loadView('report.order-list-report', ['purchasedOrders' => $purchaseOrders]);

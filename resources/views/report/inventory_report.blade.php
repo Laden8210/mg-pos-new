@@ -27,7 +27,7 @@
                             <!-- Date Picker & Month Filter -->
 
                         </div>
-                        <form method="GET" action="{{ route('reorder_list_report') }}" id="dateFilterForm">
+                        <form method="GET" action="{{ route('inventory_report') }}" id="dateFilterForm">
                             <div class="mb-2 w-50 d-flex justify-content-start gap-2">
 
                                 <div class="form-group">
@@ -64,10 +64,11 @@
                                     <th>Batch</th>
                                     <th>Item Name</th>
                                     <th>Supplier Name</th>
-                                    <th>Description</th>
+                                    <th>Beginning Inventory</th>
+                                    <th>Item Purchased</th>
                                     <th>Category</th>
-                                    <th>Qty On Hand</th>
-                                    <th>Date Received</th>
+                                    <th>Item Sold</th>
+                                    <th>Ending Sold</th>
                                     <th>Reorder Point</th>
                                     <!-- <th>Status</th> -->
                                 </tr>
@@ -81,12 +82,13 @@
                                         <!-- Accessing itemName via relationship -->
                                         <td>{{ $inventory->supplier->CompanyName ?? 'N/A' }}</td>
                                         <!-- Accessing CompanyName via relationship -->
-                                        <td>{{ $inventory->item->description ?? 'N/A' }}</td>
+                                        <td>{{ $inventory->original_quantity ?? 'N/A' }}</td>
                                         <!-- Accessing description via relationship -->
-                                        <td>{{ $inventory->item->itemCategory ?? 'N/A' }}</td>
+                                        <td>{{ $inventory->qtyonhand ?? 'N/A' }}</td>
                                         <!-- Accessing itemCategory via relationship -->
-                                        <td>{{ $inventory->qtyonhand }}</td>
+                                        <td>{{ $inventory->item->description }}</td>
                                         <td>{{ \Carbon\Carbon::parse($inventory->date_received)->format('F j, Y') }}</td>
+                                        <td>{{ number_format($inventory->original_quantity - $inventory->qtyonhand, 0) }}</td>
                                         <td>{{ number_format($inventory->reorder_point, 0) }}</td>
                                         <!-- <td>{{ $inventory->status }}</td> -->
                                     </tr>

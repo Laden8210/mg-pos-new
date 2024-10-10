@@ -8,6 +8,7 @@ use Livewire\Component;
 use App\Models\Supplier;
 use App\Models\Inventory;
 use App\Models\StockCard;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\PurchaseItem;
 
 class OrderSupplies extends Component
@@ -80,6 +81,8 @@ class OrderSupplies extends Component
         // Save the order
         $order->save();
 
+
+
         // Associate items with the order
         foreach ($this->selectedItems as $item) {
             $order->items()->create([
@@ -96,6 +99,8 @@ class OrderSupplies extends Component
 
         // Flash success message
         session()->flash('message', 'Order has been created successfully');
+
+        return redirect()->route('print-purchase-order', $order->purchase_number);
     }
 
     // Method to generate a unique purchase number

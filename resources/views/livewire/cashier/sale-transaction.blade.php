@@ -97,16 +97,7 @@
                                             <input type="text" class="form-control"
                                                 value="P {{ number_format($total, 2) }}" readonly>
                                         </div>
-                                        <div class="col-sm-6 mt-3">
-                                            <label for="discount">Discount Percentage:</label>
-                                            <div class="input-group">
-                                                <input type="number" wire:model="discountPercentage"
-                                                    placeholder="Enter discount percentage" min="0" max="100"
-                                                    class="form-control" />
-                                                <button wire:click="applyDiscount"
-                                                    class="btn btn-primary">Apply Discount</button>
-                                            </div>
-                                        </div>
+
                                         <div class="col-sm-6 mt-3">
                                             <label>Amount Tendered</label>
                                             <input type="number" wire:model="amountTendered"

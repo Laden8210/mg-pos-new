@@ -141,7 +141,7 @@
                     <th>Date</th>
                     <th>Item Sold</th>
 
-                    <th>Unit Price</th>
+                    <th>Selling Price</th>
                     <th>No. of Items Sold</th>
 
                     <th>Total Sales</th>
@@ -153,7 +153,29 @@
                 @php
                     $totalItemsSold = 0;
                     $totalRevenue = 0;
+                    $topSellingProduct = null;
+                    $topSellingProductCount = 0;
+                    $productSales = [];
+
+                    // Calculate total items sold, total revenue, and track product sales
+                    foreach ($transactions as $transaction) {
+                        $totalItemsSold += $transaction->quantity;
+
+
+                        // Track sales by product
+                        if (!isset($productSales[$transaction->item->itemName])) {
+                            $productSales[$transaction->item->itemName] = 0;
+                        }
+                        $productSales[$transaction->item->itemName] += $transaction->quantity;
+
+                        // Check if this product is the top-selling product
+                        if ($productSales[$transaction->item->itemName] > $topSellingProductCount) {
+                            $topSellingProductCount = $productSales[$transaction->item->itemName];
+                            $topSellingProduct = $transaction->item->itemName;
+                        }
+                    }
                 @endphp
+
                 =
                 @foreach ($transactions as $transaction)
                     <tr>
@@ -166,22 +188,37 @@
                         </td>
 
                         <td>{{ $transaction->quantity }}</td>
-                        <td> <span style="font-family: DejaVu Sans;">&#x20B1;</span>{{ $transaction->total_sell }}</td>
+                        <td> <span style="font-family: DejaVu Sans;">&#x20B1;</span>{{  $transaction->item->sellingPrice *  $transaction->quantity}}</td>
 
 
                     </tr>
 
                     @php
-                        $totalItemsSold += $transaction->quantity;
-                        $totalRevenue += $transaction->total_sell;
+
+                        $totalRevenue += $transaction->item->sellingPrice * $transaction->quantity;
                     @endphp
                 @endforeach
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="4" class="text-right font-weight-bold">Total:</td>
-                    <td>{{ $totalItemsSold }}</td>
-                    <td>     <span style="font-family: DejaVu Sans;">&#x20B1;</span>{{ number_format($totalRevenue, 2) }}</td>
+                    <td colspan="5" class="text-right font-weight-bold">Total Sales:</td>
+
+                    <td> <span style="font-family: DejaVu Sans;">&#x20B1;</span>{{ number_format($totalRevenue, 2) }}
+                    </td>
+                </tr>
+
+                <tr>
+
+                    <td colspan="5" class="text-right font-weight-bold">Total Transaction:</td>
+                    <td>{{ $transactions->count() }}</td>
+
+                </tr>
+
+                <tr>
+                    <td colspan="5" class="text-right font-weight-bold">Top Selling Product:</td>
+
+
+                    <td>{{ $topSellingProduct }}</td>
                 </tr>
             </tfoot>
 

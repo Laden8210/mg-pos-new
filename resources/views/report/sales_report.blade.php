@@ -40,7 +40,7 @@
                     <table class="table datanew">
                     <thead>
                         <tr>
-                            <th>Transaction No.</th>
+                            <th>INVOICE No.</th>
                             <th>Date</th>
                             <th>Item Sold</th>
 

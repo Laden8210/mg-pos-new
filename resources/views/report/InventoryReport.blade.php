@@ -56,7 +56,7 @@
         .table-applicants th, .table-applicants td {
             text-align: left;
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 5px;
         }
         .table-applicants th {
             background-color: #f9f9f9;
@@ -120,31 +120,38 @@
                     <th>Inventory ID</th>
                     <th>Batch</th>
                     <th>Item Name</th>
-
-                    <th>Description</th>
+                    <th>Supplier Name</th>
+                    <th>Beginning Inventory</th>
+                    <th>Item Purchased</th>
                     <th>Category</th>
-                    <th>Qty On Hand</th>
-                    <th>Date Received</th>
+                    <th>Item Sold</th>
+                    <th>Ending Sold</th>
                     <th>Reorder Point</th>
                     <!-- <th>Status</th> -->
                 </tr>
             </thead>
             <tbody>
-                @foreach($salesStockCard as $inventory) <!-- Corrected variable name here -->
+                @foreach ($salesStockCard as $inventory)
                     <tr>
                         <td>{{ $inventory->inventoryId }}</td>
                         <td>{{ $inventory->batch }}</td>
-                        <td>{{ $inventory->item->itemName }}</td>
-
+                        <td>{{ $inventory->item->itemName ?? 'N/A' }}</td>
+                        <!-- Accessing itemName via relationship -->
+                        <td>{{ $inventory->supplier->CompanyName ?? 'N/A' }}</td>
+                        <!-- Accessing CompanyName via relationship -->
+                        <td>{{ $inventory->original_quantity ?? 'N/A' }}</td>
+                        <!-- Accessing description via relationship -->
+                        <td>{{ $inventory->qtyonhand ?? 'N/A' }}</td>
+                        <!-- Accessing itemCategory via relationship -->
                         <td>{{ $inventory->item->description }}</td>
-                        <td>{{ $inventory->item->itemCategory }}</td>
-                        <td>{{ $inventory->qtyonhand }}</td>
-                        <td>{{ \Carbon\Carbon::parse($inventory->date_received)->format('F j, Y') }}</td> <!-- Date formatting -->
+                        <td>{{ \Carbon\Carbon::parse($inventory->date_received)->format('F j, Y') }}</td>
+                        <td>{{ number_format($inventory->original_quantity - $inventory->qtyonhand, 0) }}</td>
                         <td>{{ number_format($inventory->reorder_point, 0) }}</td>
                         <!-- <td>{{ $inventory->status }}</td> -->
                     </tr>
                 @endforeach
             </tbody>
+
         </table>
         <div class="report-info">
             <p class="prepared-by">Prepared By:</p>
