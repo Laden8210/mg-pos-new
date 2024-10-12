@@ -49,26 +49,28 @@
                         <table class="table datanew">
                             <thead>
                                 <th>ORDER NUMBER</th>
-                                <th>SUPPLIER NAME</th>
                                 <th>ORDER DATE</th>
                                 <th>ITEM NAME</th>
-                                <th>TOTAL ITEM</th>
+                                <th>SUPPLIER NAME</th>
+                                <th>QTY ORDERED</th>
                                 <th>UNIT PRICE</th>
-                                <th>TOTAL COST</th>
-                                <th>DELIVER DATE</th>
-                                <th>QTY REORDER</th>
+                                <th>TOTAL PRICE</th>
+                                <th>STATUS</th>
+                                <th>RECEIVED DATE</th>
+                                <th>QTY RECEIVED</th>
                             </thead>
                             <tbody>
                                 @foreach ($purchasedOrders as $purchaseOrder)
                                     @foreach ($purchaseOrder->purchaseItems as $purchaseItem)
                                         <tr>
                                             <td>{{ $purchaseItem->purchase_item_id }}</td>
-                                            <td>{{ $purchaseOrder->supplier->CompanyName }}</td>
                                             <td>{{ $purchaseOrder->order_date }}</td>
                                             <td>{{ $purchaseItem->item->itemName }}</td>
+                                            <td>{{ $purchaseOrder->supplier->CompanyName }}</td>
                                             <td>{{ $purchaseItem->quantity }}</td>
                                             <td>{{ $purchaseItem->item->unitPrice }}</td>
                                             <td>{{ $purchaseItem->total_price }}</td>
+                                            <td>{{ $purchaseOrder->status }}</td>
                                             <td>{{ $purchaseOrder->delivery_date }}</td>
                                             <td>{{ $purchaseItem->inventory->original_quantity ?? '' }}</td>
                                             {{-- <td>{{  }}</td>

@@ -36,11 +36,13 @@
                         <thead>
                             <th>RETURN ID</th>
                             <th>RETURN DATE</th>
-                            <th>TRANSACTION ID</th>
-                            <th>ITEM NAME</th>
+                            <th>INVOICE NO.</th>
+                            <th>RETURNED ITEM</th>
                             <th>QUANTITY</th>
-                            <th>SELLING PRICE</th>
-                            <th>TOTAL AMOUNT</th>
+                            <th>REASON</th>
+                            <th>PRICE</th>
+                            <th>STATUS</th>
+
 
                         </thead>
                         <tbody>
@@ -53,7 +55,7 @@
                                 <td>{{ $stockCard->Quantity }}</td>
                                 <td>{{ number_format($stockCard->item->sellingPrice ?? 0, 2) }}</td>
                                 <td>{{ number_format($stockCard->Quantity * $stockCard->item->sellingPrice ?? 0, 2)}}</td><!--TOTAL AMOUNT HERE-->
-
+                                <td>Returned</td>
                             </tr>
                         @endforeach
                         </tbody>

@@ -131,6 +131,14 @@
         <div class="title-container">
             <div class="report-title">FAST MOVING ITEM REPORT</div>
 
+
+            <div>
+                <p class="report-date">Date: {{
+                    \Carbon\Carbon::parse($start_date)->format('F j, Y') . ' - ' . \Carbon\Carbon::parse($end_date)->format('F j, Y')
+                }}</p>
+
+            </div>
+
         </div>
 
         <!-- Table with applicants data -->

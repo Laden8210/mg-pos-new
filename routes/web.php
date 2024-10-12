@@ -55,7 +55,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // Print receipt route
-Route::get('/print-reciept/{items}/{subtotal}/{total}/{discount}/{amountTendered}/{change}', [InvoiceController::class, 'printInvoice'])->name('print-reciept');
+Route::get('/print-reciept/{invoice}/', [InvoiceController::class, 'printInvoice'])->name('print-reciept');
 
 // Print Sales Report Route (Corrected)
 Route::get('/print-sales-report', [InvoiceController::class, 'generateSalesReport'])->name('print-sales-report');

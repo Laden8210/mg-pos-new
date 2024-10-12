@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 
 class InventoryManagement extends Component
 {
+
     use WithPagination;
 
     public $search;
@@ -24,6 +25,8 @@ class InventoryManagement extends Component
     public $quantity;
     public $remarks;
     public $adjustInventory = false;
+
+    public $saleReturn = false;
 
     public function mount()
     {
@@ -51,7 +54,7 @@ class InventoryManagement extends Component
         // Get the inventory item
         $inventory = Inventory::find($this->selectedItemAdjustment);
 
-        dd($inventory);
+
 
         // Adjust the inventory quantity based on remarks
         switch ($this->remarks) {
@@ -59,7 +62,7 @@ class InventoryManagement extends Component
                 $inventory->qtyonhand += $this->quantity;
                 $stockCardType = 'StockIn';
                 break;
-                
+
             case 'StockOut':
                 // Ensure sufficient quantity before subtracting
                 if ($inventory->qtyonhand < $this->quantity) {
@@ -131,10 +134,11 @@ class InventoryManagement extends Component
             'supplier' => $supplier, // Pass supplier data
             'items' => $items, // Pass items data
             'stockCardInventories' => $this->stockCardInventories, // Pass stock card inventories
+
         ]);
     }
 
-   
+
 
     public function updated($propertyName)
     {
@@ -316,6 +320,7 @@ class InventoryManagement extends Component
     {
         $this->showStockCardModal = false;
         $this->adjustInventory = false;
+        $this->saleReturn = false;
     }
 
     public function viewStockCard()
@@ -323,9 +328,41 @@ class InventoryManagement extends Component
         $this->showStockCardModal = true;
     }
 
+
+    public function viewSaleReturn()
+    {
+        $this->saleReturn = true;
+    }
+
     public function viewAdjustItem()
     {
         $this->adjustInventory = true;
+    }
+
+    public function saveSaleReturn(){
+
+        $inventory = Inventory::find($this->selectedItemAdjustment);
+
+        $inventory->qtyonhand += $this->quantity;
+
+        // Save the adjusted inventory
+        $inventory->save();
+        // Create a new StockCard record
+        StockCard::create([
+            'DateReceived' => now(),
+            'Type' => 'Sales Return',
+            'Value' => $inventory->item->sellingPrice * $this->quantity,
+            'Quantity' => $this->quantity,
+            'supplierItemID' => $inventory->SupplierId,
+            'inventoryId' => $inventory->inventoryId,
+            'Remarks' => $this->remarks,
+        ]);
+
+
+        $this->showStockCardModal = false;
+
+        session()->flash('message-status', 'Stock Card has been updated successfully');
+
     }
 
     public function saveUpdate()
@@ -334,7 +371,7 @@ class InventoryManagement extends Component
             'quantity' => 'required|numeric|min:1',
             'remarks' => 'required'
         ]);
-        
+
 
         // Get the inventory item
         $inventory = Inventory::find($this->selectedItemAdjustment);
@@ -345,7 +382,7 @@ class InventoryManagement extends Component
                 $inventory->qtyonhand += $this->quantity;
                 $stockCardType = 'StockIn';
                 break;
-                
+
             case 'StockOut':
                 // Ensure sufficient quantity before subtracting
                 if ($inventory->qtyonhand < $this->quantity) {
@@ -385,6 +422,6 @@ class InventoryManagement extends Component
         session()->flash('message-status', 'Stock Card has been updated successfully');
     }
 
-    
+
 
 }

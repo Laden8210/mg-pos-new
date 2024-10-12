@@ -61,14 +61,16 @@
                             <thead>
                                 <tr>
                                     <th>Inventory ID</th>
-                                    <th>Batch</th>
+                                    <th>Batch Number</th>
                                     <th>Item Name</th>
-                                    <th>Supplier Name</th>
-                                    <th>Beginning Inventory</th>
-                                    <th>Item Purchased</th>
                                     <th>Category</th>
+                                    <th>Supplier Name</th>
+
+                                    <th>Beginning Inventory</th>
+
+
                                     <th>Item Sold</th>
-                                    <th>Ending Sold</th>
+                                    <th>Ending Inventory</th>
                                     <th>Reorder Point</th>
                                     <!-- <th>Status</th> -->
                                 </tr>
@@ -79,6 +81,7 @@
                                         <td>{{ $inventory->inventoryId }}</td>
                                         <td>{{ $inventory->batch }}</td>
                                         <td>{{ $inventory->item->itemName ?? 'N/A' }}</td>
+                                        <td>{{ $inventory->item->itemCategory }}</td>
                                         <!-- Accessing itemName via relationship -->
                                         <td>{{ $inventory->supplier->CompanyName ?? 'N/A' }}</td>
                                         <!-- Accessing CompanyName via relationship -->
@@ -86,11 +89,10 @@
                                         <!-- Accessing description via relationship -->
                                         <td>{{ $inventory->qtyonhand ?? 'N/A' }}</td>
                                         <!-- Accessing itemCategory via relationship -->
-                                        <td>{{ $inventory->item->description }}</td>
-                                        <td>{{ \Carbon\Carbon::parse($inventory->date_received)->format('F j, Y') }}</td>
-                                        <td>{{ number_format($inventory->original_quantity - $inventory->qtyonhand, 0) }}</td>
-                                        <td>{{ number_format($inventory->reorder_point, 0) }}</td>
-                                        <!-- <td>{{ $inventory->status }}</td> -->
+
+                                        <td>{{ $inventory->qtyonhand}}</td>
+                                        <td>{{ number_format($inventory->original_quantity *.4, 0) }}</td>
+
                                     </tr>
                                 @endforeach
                             </tbody>

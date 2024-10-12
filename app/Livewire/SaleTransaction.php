@@ -5,9 +5,10 @@ namespace App\Livewire;
 use Livewire\Component;
 use App\Models\Item;
 use App\Models\StockCard;
-use App\Models\SalesTransaction;
+use App\Models\SaleTransactionModel;
 use App\Models\Inventory;
 use App\Models\Transactions;
+use Illuminate\Support\Facades\Auth;
 
 class SaleTransaction extends Component
 {
@@ -200,6 +201,26 @@ class SaleTransaction extends Component
     public function preparePrint()
     {
         $cartItems = urlencode(json_encode($this->cart));
+        $totalSum = 0;
+        $totalItem = 0;
+
+        foreach ($this->cart as $cartItem) {
+            $totalSum += $cartItem['price'] * $cartItem['quantity'];
+            $totalItem += $cartItem['quantity'];
+        }
+
+
+        $salesTransaction = SaleTransactionModel::create([
+            'transaction_number' => $this->generateTransactionNumber(),
+            'total_amount' => $totalSum,
+            'amount_tendered' => $this->amountTendered,
+            'change' => $this->change,
+            'vat' => $totalSum * 0.12,
+            'subtotal' => $this->subtotal,
+            'total_items' => $totalItem,
+            'employee_id' => Auth::user()->employee_id,
+        ]);
+
 
         foreach ($this->cart as $cartItem) {
             $item = Inventory::where('itemID', $cartItem['id'])->first();
@@ -222,9 +243,10 @@ class SaleTransaction extends Component
                     'Remarks' => "Sent",
                 ]);
 
-                Transactions::create([
+                $salesTransaction->transactions()->
+                create([
 
-                    'transaction_no' => $this->generateTransactionNumber()  ,
+
                     'itemID' => $cartItem['id'],
                     'selling_price' => $cartItem['price'],
                     'quantity' => $cartItem['quantity'],
@@ -232,17 +254,21 @@ class SaleTransaction extends Component
                     'total_sell' => $cartItem['price'] * $cartItem['quantity'],
                 ]);
 
+                $totalSum += $cartItem['price'] * $cartItem['quantity'];
+
+                $totalItem += $cartItem['quantity'];
+
+
                 $this->temporaryInventoryDepletion[$item->itemID] = $cartItem['quantity'];
             }
         }
+
+
         // Ensure subtotal is correct and not altered by the loop
         return redirect()->route('print-reciept', [
-            'items' => $cartItems,
-            'subtotal' => $this->subtotal / 2, // Ensure this value is calculated correctly before the loop
-            'total' => $this->total / 2,
-            'discount' => $this->discount ?? 0,
-            'amountTendered' => $this->amountTendered,
-            'change' => $this->change,
+
+            'invoice' => $salesTransaction->transaction_number,
+
             $this->resetTransaction()
         ]);
     }
@@ -257,15 +283,15 @@ class SaleTransaction extends Component
     protected function storeTransaction()
     {
         // Save the transaction details to the database
-        SalesTransaction::create([
-            'transaction_number' => $this->transactionNumber,
-            'items' => json_encode($this->cart), // You can customize this as needed
-            'subtotal' => $this->subtotal,
-            'total' => $this->total,
-            'discount' => $this->discount,
-            'amount_tendered' => $this->amountTendered,
-            'change' => $this->change,
-        ]);
+    //     SalesTransaction::create([
+    //         'transaction_number' => $this->transactionNumber,
+    // / You can customize this as needed
+    //         'subtotal' => $this->subtotal,
+    //         'total' => $this->total,
+    //         'discount' => $this->discount,
+    //         'amount_tendered' => $this->amountTendered,
+    //         'change' => $this->change,
+    //     ]);
 
         // Increment the transaction number for the next transaction
         $this->transactionNumber++;

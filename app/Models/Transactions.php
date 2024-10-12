@@ -31,4 +31,9 @@ class Transactions extends Model
         return $this->belongsTo(Item::class, 'itemID', 'itemID');
     }
 
+    public function saleTransaction()
+    {
+        return $this->belongsTo(SaleTransactionModel::class, 'sales_transaction_id', 'sales_transaction_id');
+    }
+
 }

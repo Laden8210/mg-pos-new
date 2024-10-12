@@ -12,6 +12,7 @@ use App\Models\Employee; // Make sure this line is included
 use Illuminate\Support\Facades\Hash;
 use App\Models\Item;
 use App\Http\Controllers\Income;
+use App\Models\SaleTransactionModel;
 use App\Models\Transactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -128,10 +129,12 @@ class POSController extends Controller
         $start_date = $request->input('start_date', now()->toDateString());
         $end_date   = $request->input('end_date', now()->toDateString());
         $stockCards = StockCard::with(['item'])
-            ->where('Type', 'SalesReturn')
+            ->where('Type', 'Sales Return')
             ->whereDate('DateReceived', $start_date)
             ->whereDate('DateReceived', $end_date)
             ->get();
+
+
 
         return view('report.sales_return_report', compact('stockCards'));
     }
@@ -376,7 +379,9 @@ class POSController extends Controller
         $startDate = $request->input('start_date', now()->toDateString());
         $endDate = $request->input('end_date', now()->toDateString());
         // Fetch all inventory items
-        $inventoryItems = Inventory::with(['item', 'supplier'])->get();
+        $inventoryItems = Inventory::with(['item', 'supplier'])
+        ->whereBetween('date_received', [$startDate, $endDate])
+        ->get();
 
         // Filter items that have reached the reorder point
         $reorderItems = $inventoryItems->filter(function ($item) {
@@ -416,11 +421,11 @@ class POSController extends Controller
         $filterDate = $request->input('filter_date', now()->toDateString());
         $startDate = $request->input('start_date', now()->toDateString()); // New start date input
 
-        $transactions = Transactions::with('item')->whereDate('date_created', '>=', $startDate) // Filter by start date
-            ->whereDate('date_created', '<=', $filterDate) // Filter by end date
+        $saleTransaction = SaleTransactionModel::with('transactions.item')->whereDate('created_at', '>=', $startDate) // Filter by start date
+            ->whereDate('created_at', '<=', $filterDate) // Filter by end date
             ->get();
 
-        return view('report.sales_report', compact('transactions'));
+        return view('report.sales_report', compact('saleTransaction'));
     }
     // Stock movement report view
     public function stockMovementReport(Request $request)

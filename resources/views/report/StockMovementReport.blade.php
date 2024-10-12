@@ -131,6 +131,13 @@
         <div class="title-container">
             <div class="report-title">STOCK MOVEMENT REPORT</div>
 
+            <div>
+                <p class="report-date">Date: {{
+                    \Carbon\Carbon::parse($start_date)->format('F j, Y'). ' - ' . \Carbon\Carbon::parse($end_date)->format('F j, Y')
+                }}</p>
+
+            </div>
+
         </div>
 
         <!-- Table with applicants data -->
@@ -186,8 +193,16 @@
                             }
                         @endphp
                     </td>
-                    <td>{{ $stockCard->Quantity }}</td>
-                    <td>{{ $stockCard->Remarks }}</td>
+                    <td>{{ $stockCard->inventory->qtyonhand  + $stockCard->Quantity }}</td>
+                    <td>
+
+                        @if ($stockCard->inventory->qtyonhand < $stockCard->Quantity)
+                            <span style="color: red;">Negative</span>
+
+                        @else
+                            <span style="color:green">Postive</span>
+                            @endif
+                    </td>
                 </tr>
                 @endforeach
 

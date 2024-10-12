@@ -10,6 +10,7 @@ use App\Models\Item;
 use App\Models\PurchaseOrder;
 use App\Models\Transactions;
 use App\Models\PurchaseItem;
+use App\Models\SaleTransactionModel;
 use Illuminate\Support\Facades\Auth;
 class InvoiceController extends Controller
 {
@@ -19,20 +20,15 @@ class InvoiceController extends Controller
     // {
     //     $this->printerService = $printerService;
     // }
-    public function printInvoice($items_list, $subtotal, $total, $discount, $amountTendered, $change)
-    {
-        // Decode the JSON string into a PHP array
-        $itemsList = json_decode($items_list, true);
+    public function printInvoice($invoice)
 
-        // Pass the decoded array, total, amount tendered, and change to the view
-        $pdf = Pdf::loadView('report.sales-invoice', [
-            'items' => $itemsList,
-            'subtotal' => $subtotal,
-            'total' => $total,
-            'discount' => $discount,
-            'amountTendered' => $amountTendered,
-            'change' => $change
-        ]);
+    {
+        // Fetch the invoice data
+        $invoiceData = SaleTransactionModel::with('transactions', 'transactions.item')
+            ->where('transaction_number', $invoice)
+            ->first();
+
+        $pdf = Pdf::loadView('report.sales-invoice', compact('invoiceData'));
 
         // Download the generated PDF
         return $pdf->stream('invoice.pdf');
@@ -58,22 +54,18 @@ class InvoiceController extends Controller
     public function generateSalesReport(Request $request)
     {
 
-        $startDate = $request->input('start_date') ?? null;
-        $endDate = $request->input('end_date') ?? null;
+        $start_date = $request->input('start_date') ?? null;
+        $end_date = $request->input('end_date') ?? null;
 
 
-        $transactions = Transactions::with('item')
-            ->when($startDate, function ($query, $startDate) {
-                return $query->whereDate('date_created', '>=', $startDate);
-            })
-            ->when($endDate, function ($query, $endDate) {
-                return $query->whereDate('date_created', '<=', $endDate);
-            })
+
+        $saleTransaction = SaleTransactionModel::with('transactions.item')->whereDate('created_at', '>=', $start_date) // Filter by start date
+            ->whereDate('created_at', '<=', $end_date) // Filter by end date
             ->get();
 
 
 
-        $pdf = Pdf::loadView('report.salesReport', ['transactions' => $transactions]);
+        $pdf = Pdf::loadView('report.salesReport',compact('saleTransaction', 'start_date', 'end_date'));
 
         // Stream the generated PDF
         return $pdf->stream('sales_report.pdf');
@@ -100,7 +92,7 @@ class InvoiceController extends Controller
 
         // Load the view with the correct variable name
         $pdf = Pdf::loadView('report.InventoryReport', [
-            'salesStockCard' => $inventoryData, // Corrected variable name
+            'salseStockCard' => $inventoryData, // Corrected variable name
             'startDate' => $startDate,
             'endDate' => $endDate
         ]);
@@ -113,16 +105,20 @@ class InvoiceController extends Controller
     public function generateStockMovementReport(Request $request){
 
 
-        $startDate = $request->input('start_date', now()->toDateString());
-        $endDate = $request->input('end_date', now()->toDateString());
+        $start_date = $request->input('start_date', now()->toDateString());
+        $end_date = $request->input('end_date', now()->toDateString());
 
         $stockCards = StockCard::with(['item'])
-            ->whereBetween('DateReceived', [$startDate, $endDate])
+            ->whereBetween('DateReceived', [$start_date, $end_date])
+            ->where('Type', '!=', 'Sales Return')
             ->get();
 
-            $pdf = Pdf::loadView('report.StockMovementReport', [
-                'stockCards' => $stockCards, // Corrected variable name
 
+            $pdf = Pdf::loadView('report.StockMovementReport', [
+    // Corrected variable name
+                'stockCards' => $stockCards,  // Correct variable name
+                'start_date' => $start_date,
+                'end_date' => $end_date,
             ]);
 
             // Download the generated PDF
@@ -135,8 +131,8 @@ class InvoiceController extends Controller
     {
 
 
-        $startDate = $request->input('start_date') ?? null;
-        $endDate = $request->input('end_date') ?? null;
+        $start_date = $request->input('start_date') ?? null;
+        $end_date = $request->input('end_date') ?? null;
 
         // Fetch all inventory items
         $inventoryItems = Inventory::with(['item', 'supplier'])->get();
@@ -145,7 +141,7 @@ class InvoiceController extends Controller
         $reorderItems = $inventoryItems->filter(function ($item) {
             return $item->qtyonhand <= ($item->original_quantity * 0.3);
         });
-        $pdf = Pdf::loadView('report.reorder-list-report', ['reorderItems' => $reorderItems]);
+        $pdf = Pdf::loadView('report.reorder-list-report',  compact('reorderItems', 'start_date', 'end_date'));
 
         // Download the generated PDF
         return $pdf->stream('reorder_list_report.pdf');
@@ -154,19 +150,19 @@ class InvoiceController extends Controller
     public function generateOrderListReport(Request $request)
     {
 
-        $startDate = $request->input('start_date') ?? null;
-        $endDate = $request->input('end_date') ?? null;
+        $start_date = $request->input('start_date') ?? null;
+        $end_date = $request->input('end_date') ?? null;
 
-        $purchaseOrders = PurchaseOrder::with(['supplier', 'items.item', 'items.inventory'])
-        ->when($startDate, function ($query) use ($startDate) {
-            return $query->where('delivery_date', '>=', $startDate);
+        $purchasedOrders = PurchaseOrder::with(['supplier', 'items.item', 'items.inventory'])
+        ->when($start_date, function ($query) use ($start_date) {
+            return $query->where('delivery_date', '>=', $start_date);
         })
-        ->when($endDate, function ($query) use ($endDate) {
-            return $query->where('delivery_date', '<=', $endDate);
+        ->when($end_date, function ($query) use ($end_date) {
+            return $query->where('delivery_date', '<=', $end_date);
         })->get();
 
 
-        $pdf = Pdf::loadView('report.order-list-report', ['purchasedOrders' => $purchaseOrders]);
+        $pdf = Pdf::loadView('report.order-list-report',  compact('purchasedOrders', 'start_date', 'end_date'));
 
         // Download the generated PDF
         return $pdf->stream('order_list_report.pdf');
@@ -179,7 +175,7 @@ class InvoiceController extends Controller
             ->whereIn('Type', ['Sales', 'SalesReturn'])
             ->get();
 
-        $pdf = Pdf::loadView('report.transactionHistoryReport', ['stockCards' => $stockCards]);
+        $pdf = Pdf::loadView('report.transactionHistoryReport',  compact('stockCards', 'start_date', 'end_date'));
 
         // Download the generated PDF
         return $pdf->stream('transaction_history_report.pdf');
@@ -191,12 +187,12 @@ class InvoiceController extends Controller
         $start_date = $request->input('start_date', now()->toDateString());
         $end_date   = $request->input('end_date', now()->toDateString());
         $stockCards = StockCard::with(['item'])
-            ->where('Type', 'SalesReturn')
+            ->where('Type', 'Sales Return')
             ->whereDate('DateReceived', $start_date)
             ->whereDate('DateReceived', $end_date)
             ->get();
 
-        $pdf = Pdf::loadView('report.salesReturnReport', ['stockCards' => $stockCards]);
+        $pdf = Pdf::loadView('report.salesReturnReport', compact('stockCards', 'start_date', 'end_date'));
 
         // Download the generated PDF
         return $pdf->stream('transaction_history_report.pdf');

@@ -131,6 +131,13 @@
         <div class="title-container">
             <div class="report-title">SALES RETURN REPORT</div>
 
+            <div>
+                <p class="report-date">Date: {{
+                    \Carbon\Carbon::parse($start_date)->format('F j, Y') . ' - ' . \Carbon\Carbon::parse($end_date)->format('F j, Y')
+                }}</p>
+
+            </div>
+
         </div>
 
         <!-- Table with applicants data -->
@@ -139,11 +146,13 @@
                 <thead>
                     <th>RETURN ID</th>
                     <th>RETURN DATE</th>
-                    <th>TRANSACTION ID</th>
-                    <th>ITEM NAME</th>
+
+                    <th>INVOICE NO.</th>
+                    <th>RETURNED ITEM</th>
                     <th>QUANTITY</th>
-                    <th>SELLING PRICE</th>
-                    <th>TOTAL AMOUNT</th>
+                    <th>REASON</th>
+                    <th>PRICE</th>
+                    <th>STATUS</th>
 
                 </thead>
             </thead>
@@ -157,7 +166,7 @@
                     <td>{{ $stockCard->Quantity }}</td>
                     <td>{{ number_format($stockCard->item->sellingPrice ?? 0, 2) }}</td>
                     <td>{{ number_format($stockCard->Quantity * $stockCard->item->sellingPrice ?? 0, 2)}}</td><!--TOTAL AMOUNT HERE-->
-
+                    <td>Returned</td>
                 </tr>
             @endforeach
             </tbody>

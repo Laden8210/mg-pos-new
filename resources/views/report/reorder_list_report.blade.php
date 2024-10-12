@@ -19,7 +19,7 @@
                         </div>
                     </div>
 
-                    <form method="GET" action="{{ route('order_list_report') }}" id="dateFilterForm">
+                    <form method="GET" action="{{ route('reorder_list_report') }}" id="dateFilterForm">
                         <div class="mb-2 w-50 d-flex justify-content-start gap-2">
 
                           <div class="form-group">

@@ -81,8 +81,16 @@
                                         }
                                     @endphp
                                 </td>
-                                <td>{{ $stockCard->Quantity }}</td>
-                                <td>{{ $stockCard->Remarks }}</td>
+                                <td>{{ $stockCard->inventory->qtyonhand  + $stockCard->Quantity }}</td>
+                                <td>
+
+                                    @if ($stockCard->inventory->qtyonhand < $stockCard->Quantity)
+                                        <span style="color: red;">Negative</span>
+
+                                    @else
+                                        <span style="color:green">Postive</span>
+                                        @endif
+                                </td>
                             </tr>
                             @endforeach
 

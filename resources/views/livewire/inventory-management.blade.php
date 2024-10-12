@@ -141,10 +141,13 @@
                         <button type="button" class="btn btn-primary" style="margin-right: 10px;"
                             data-bs-toggle="modal" data-bs-target="#adjustCardModal"
                             wire:click.prevent="viewAdjustItem">Adjust
-                            </a>
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                                data-bs-target="#stockCardModal" wire:click.prevent="viewStockCard">View Stock
-                                Card</button>
+                        </button>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#stockCardModal" wire:click.prevent="viewStockCard">View Stock
+                            Card</button>
+
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#stockCardModal" wire:click.prevent="viewSaleReturn">Sale Return</button>
                     </div>
 
                 </div>
@@ -204,10 +207,81 @@
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" value="Sales Return" name="remarks"
+                                    <input class="form-check-input" type="radio" value="Sales Return"
+                                        name="remarks" id="flexCheckDefault" wire:model="remarks">
+                                    <label class="form-check-label" for="flexCheckDefault">
+                                        Sales Return
+                                    </label>
+                                </div>
+                            </div>
+
+
+
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary"
+                                wire:click="closeStockModal">Close</button>
+                            <button type="submit" class="btn btn-primary">Save changes</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    @endif
+
+
+    @if ($saleReturn)
+
+
+        <div class="modal fade show" id="adjustCardModal" tabindex="-1" aria-labelledby="stockCardModalLabel"
+            aria-hidden="true" style="display: block;">
+            <div class="modal-dialog modal-sm">
+                <form wire:submit.prevent="saveSaleReturn">
+                    <div class="modal-content">
+                        <div class="modal-header">
+
+                            <h5 class="modal-title" id="stockCardModalLabel">Sale Return</h5>
+
+                            <button type="button" class="btn-close" wire:click="closeStockModal"
+                                aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <select name="" id="" class="form-select "
+                                    wire:model="selectedItemAdjustment">
+
+                                    <option value="">Select Item</option>
+                                    @foreach ($inventories as $inventory)
+                                        <option value="{{ $inventory->inventoryId }}">
+                                            {{ $inventory->item->itemName }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                            </div>
+
+                            <div>
+                                <label for="quantity" class="form-label">Quantity</label>
+                                <input type="number" class="form-control" id="quantity" wire:model="quantity">
+                            </div>
+
+                            <div>
+                                <label for="remarks" class="form-label">Remarks</label>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" value="Expired" name="remarks"
                                         id="flexCheckDefault" wire:model="remarks">
                                     <label class="form-check-label" for="flexCheckDefault">
-                                       Sales Return
+                                        Expired
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" value="Defect"
+                                        name="remarks" id="flexCheckDefault" wire:model="remarks">
+                                    <label class="form-check-label" for="flexCheckDefault">
+                                        Defect
                                     </label>
                                 </div>
                             </div>
@@ -250,7 +324,7 @@
 
                                     <option value="">Select Item</option>
                                     @foreach ($items as $item)
-                                        <option value="{{ $item->item->itemID}}">
+                                        <option value="{{ $item->item->itemID }}">
                                             {{ $item->item->itemName }}
                                         </option>
                                     @endforeach

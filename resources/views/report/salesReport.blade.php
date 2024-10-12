@@ -131,17 +131,23 @@
         <div class="title-container">
             <div class="report-title">SALES REPORT</div>
 
+            <div>
+                <p class="report-date">Date:
+                    {{ \Carbon\Carbon::parse($start_date)->format('F j, Y') . ' - ' . \Carbon\Carbon::parse($end_date)->format('F j, Y') }}
+                </p>
+
+            </div>
         </div>
 
         <!-- Table with applicants data -->
         <table class="table-applicants">
             <thead>
                 <tr>
-                    <th>Transaction No.</th>
+                    <th>INVOICE No.</th>
                     <th>Date</th>
                     <th>Item Sold</th>
-
                     <th>Selling Price</th>
+
                     <th>No. of Items Sold</th>
 
                     <th>Total Sales</th>
@@ -158,46 +164,65 @@
                     $productSales = [];
 
                     // Calculate total items sold, total revenue, and track product sales
-                    foreach ($transactions as $transaction) {
-                        $totalItemsSold += $transaction->quantity;
+                    foreach ($saleTransaction as $sale) {
+                        foreach ($sale->transactions as $transaction) {
+                            $totalItemsSold += $transaction->quantity;
 
+                            // Track sales by product
+                            if (!isset($productSales[$transaction->item->itemName])) {
+                                $productSales[$transaction->item->itemName] = 0;
+                            }
+                            $productSales[$transaction->item->itemName] += $transaction->quantity;
 
-                        // Track sales by product
-                        if (!isset($productSales[$transaction->item->itemName])) {
-                            $productSales[$transaction->item->itemName] = 0;
-                        }
-                        $productSales[$transaction->item->itemName] += $transaction->quantity;
-
-                        // Check if this product is the top-selling product
-                        if ($productSales[$transaction->item->itemName] > $topSellingProductCount) {
-                            $topSellingProductCount = $productSales[$transaction->item->itemName];
-                            $topSellingProduct = $transaction->item->itemName;
+                            // Check if this product is the top-selling product
+                            if ($productSales[$transaction->item->itemName] > $topSellingProductCount) {
+                                $topSellingProductCount = $productSales[$transaction->item->itemName];
+                                $topSellingProduct = $transaction->item->itemName;
+                            }
                         }
                     }
                 @endphp
 
-                =
-                @foreach ($transactions as $transaction)
-                    <tr>
-                        <td>{{ $transaction->transaction_no }}</td>
-                        <td>{{ $transaction->created_at }}</td>
-                        <td>{{ $transaction->item->itemName }}</td>
 
-                        <td> <span
-                                style="font-family: DejaVu Sans;">&#x20B1;</span>{{ $transaction->item->sellingPrice }}
+                @foreach ($saleTransaction as $sale)
+                    <tr>
+                        <td>{{ $sale->transaction_number }}</td>
+                        <td>{{ $sale->transactions->first()->created_at->timezone('Asia/Manila')->format('F d, Y') }}
                         </td>
 
-                        <td>{{ $transaction->quantity }}</td>
-                        <td> <span style="font-family: DejaVu Sans;">&#x20B1;</span>{{  $transaction->item->sellingPrice *  $transaction->quantity}}</td>
+                        <td>
+                            @foreach ($sale->transactions as $transaction)
+                                {{ $transaction->item->itemName }}<br>
+                            @endforeach
+                        </td>
 
+                        <td>
+                            @foreach ($sale->transactions as $transaction)
+                                P {{ number_format($transaction->total_sell, 2) }}<br>
+                            @endforeach
+                        </td>
 
+                        <td>
+                            @foreach ($sale->transactions as $transaction)
+                                {{ $transaction->quantity }}<br>
+                            @endforeach
+                        </td>
+
+                        <td>
+
+                                P {{ number_format($sale->total_amount, 2) }}<br>
+
+                        </td>
                     </tr>
 
                     @php
-
-                        $totalRevenue += $transaction->item->sellingPrice * $transaction->quantity;
+                        $totalRevenue += $sale->transactions->sum(function ($transaction) {
+                            return $transaction->item->sellingPrice * $transaction->quantity;
+                        });
                     @endphp
                 @endforeach
+
+
             </tbody>
             <tfoot>
                 <tr>
@@ -210,7 +235,7 @@
                 <tr>
 
                     <td colspan="5" class="text-right font-weight-bold">Total Transaction:</td>
-                    <td>{{ $transactions->count() }}</td>
+                    <td>{{ $saleTransaction->count() }}</td>
 
                 </tr>
 

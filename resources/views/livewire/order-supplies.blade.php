@@ -5,7 +5,7 @@
             <div class="card px-2 pt-3 pb-2">
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="d-flex justify-content-normal gap-3 w-50">
-                        
+
                         <div class="form-group col-md-4">
                             <label for="supplierId">Supplier</label>
                             <select id="supplierId" class="form-control" wire:model="supplierId">
@@ -24,12 +24,12 @@
                         <button type="button" class="btn btn-success" data-bs-target="#exampleModal" data-bs-toggle="modal">Add Delivery</button>
                     </div>
                 </div>
-         
+
                 <div class="d-flex justify-content-between">
                     <div>
                         <h5>Item List</h5>
                     </div>
-    
+
                     <div class="d-flex justify-content-end gap-1 align-items-center">
                         <div class="form-group">
                             <input type="text" class="form-control" id="searchItem" placeholder="Search Item" wire:model.debounce.300ms="searchItem">
@@ -43,7 +43,7 @@
                         </div>
                     </div>
                 </div>
-    
+
                 <table class="table table-striped rounded overflow-auto">
                     <thead>
                         <tr>
@@ -79,18 +79,22 @@
                                             <li><button class="dropdown-item" wire:click="completeOrder({{ $order->purchase_order_id }})">Complete</button></li>
                                             <li><button class="dropdown-item" wire:click="cancelOrder({{ $order->purchase_order_id }})">Cancel</button></li>
                                         </ul>
+                                        <a href="{{ route('print-purchase-order', $order->purchase_number) }}" target="_blank" class="btn btn-success text-white">
+                                            View Receipt
+                                        </a>
+
                                     </div>
                                 </td>
                             </tr>
                         @endforeach
-    
+
                         <!-- Add rows for items here -->
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-    
+
     @if (session()->has('message-status'))
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
         <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">

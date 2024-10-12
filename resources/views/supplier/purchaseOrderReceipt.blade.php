@@ -68,7 +68,7 @@
         <thead>
             <tr>
                 <th>Item Number</th>
-                <th>Product</th>
+                <th>Item Name</th>
                 <th>Quantity</th>
                 <th>Unit Price</th>
                 <th>Total Price</th>
