@@ -59,6 +59,7 @@
                     </thead>
                     <tbody>
                         @foreach ($orders as $order)
+
                             <tr>
                                 <td class="text-center">{{ $order->purchase_number }}</td>
                                 <td class="text-center">{{ $order->supplier->CompanyName }}</td>
