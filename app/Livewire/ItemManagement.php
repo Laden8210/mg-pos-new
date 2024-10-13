@@ -6,6 +6,8 @@ use Livewire\Component;
 use App\Models\Item;
 use App\Models\StockCard;
 use PDO;
+use App\Models\Supplier;
+use App\Models\SupplierItem;
 
 class ItemManagement extends Component
 {
@@ -27,11 +29,16 @@ class ItemManagement extends Component
 
     public function render()
     {
+
+
+
         return view(
             'livewire.item-management',
             [
                 'items' => Item::search($this->search)->paginate(10),
-                'vatable' => Item::where('isVatable', true)->get()
+                'vatable' => Item::where('isVatable', true)->get(),
+
+                'supplierItem' => SupplierItem::with('supplier')->get(),
             ]
         );
     }

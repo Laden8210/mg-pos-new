@@ -16,7 +16,7 @@
                 <div class="card-title d-flex align-items-start justify-content-between">
                   <span class="badge bg-label-warning rounded-pill">Total Income</span>
                 </div>
-                <h3 class="card-title mb-2">₱ {{ number_format($totalIncome, 2) }}</h3>
+                <h3 class="card-title mb-2">₱ {{ number_format($totalIncome * .2, 2) }}</h3>
               </div>
             </div>
           </div>
@@ -24,7 +24,7 @@
             <div class="card">
               <div class="card-body">
                 <div class="card-title d-flex align-items-start justify-content-between">
-                  <span class="badge bg-label-warning rounded-pill">Total Sales Items</span>
+                  <span class="badge bg-label-warning rounded-pill">Total Sales </span>
                   <div class="dropdown">
                     <button class="btn p-0" type="button" id="cardOpt6" data-bs-toggle="dropdown" aria-haspopup="true"
                       aria-expanded="false">
@@ -149,7 +149,7 @@
       <!-- /Most Selling Items -->
     </div>
   </div>
-  
+
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       // Data for the chart

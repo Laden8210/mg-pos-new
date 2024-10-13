@@ -115,7 +115,7 @@
                             </div>
                         </div>
                         <div class="col-sm-4">
-                        <h5>Transaction No: 0001</h5>
+                        <h5>Transaction No: {{  $invoiceNumber}}</h5>
                             <div class="card">
                                 <div class="card-body">
                                     <button class="btn btn-success btn-lg w-100"

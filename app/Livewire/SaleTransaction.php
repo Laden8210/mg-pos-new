@@ -37,11 +37,14 @@ class SaleTransaction extends Component
 
     public $itemQuantity = 0;
 
+
+    public $invoiceNumber;
     public function mount()
     {
         $this->items = Item::all();
         $this->fetchAllInventory();
         $this->restoreInventory();
+        $this->invoiceNumber = $this->generateTransactionNumber();
     }
 
     public function fetchAllInventory()
@@ -211,7 +214,7 @@ class SaleTransaction extends Component
 
 
         $salesTransaction = SaleTransactionModel::create([
-            'transaction_number' => $this->generateTransactionNumber(),
+            'transaction_number' => $this->invoiceNumber,
             'total_amount' => $totalSum,
             'amount_tendered' => $this->amountTendered,
             'change' => $this->change,

@@ -14,15 +14,14 @@ class SupplierItem extends Model
     protected $table = 'supplieritem';
     protected $primaryKey = 'supplierItemID';
     protected $fillable = [
-        'SupplierId',
+        'supplierID',
         'itemID',
     ];
 
     public function supplier()
     {
-        return $this->belongsTo(Supplier::class, 'SupplierId', 'SupplierId');
+        return $this->belongsTo(Supplier::class, 'supplierID', 'SupplierId');
     }
-
     public function item()
     {
         return $this->belongsTo(Item::class, 'itemID', 'itemID');

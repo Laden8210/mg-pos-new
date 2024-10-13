@@ -343,7 +343,7 @@ class InventoryManagement extends Component
 
         $inventory = Inventory::find($this->selectedItemAdjustment);
 
-        $inventory->qtyonhand += $this->quantity;
+        $inventory->qtyonhand -= $this->quantity;
 
         // Save the adjusted inventory
         $inventory->save();
@@ -361,7 +361,7 @@ class InventoryManagement extends Component
 
         $this->showStockCardModal = false;
 
-        session()->flash('message-status', 'Stock Card has been updated successfully');
+        session()->flash('message-status', 'Sales Return has been updated successfully');
 
     }
 

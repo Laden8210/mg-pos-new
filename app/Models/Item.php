@@ -36,6 +36,12 @@ class Item extends Model
         return $this->hasMany(Transactions::class, 'itemID', 'itemID');
     }
 
+    public function supplierItem()
+    {
+        return $this->hasMany(SupplierItem::class, 'itemID', 'itemID'); // Correct key reference
+    }
+
+
     // Search scope for filtering items
     public function scopeSearch($query, $value)
     {

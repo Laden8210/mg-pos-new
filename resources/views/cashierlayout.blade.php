@@ -61,12 +61,7 @@
                 <div class="menu-inner-shadow"></div>
                 <ul class="menu-inner py-1">
                     <!-- Dashboard -->
-                    <li class="menu-item">
-                      <a href="/" class="menu-link" data-url="/">
-                          <i class="menu-icon tf-icons bx bx-home-circle"></i>
-                          <div data-i18n="Analytics">Dashboard</div>
-                      </a>
-                  </li>
+
                   {{-- <!-- Item Management -->
                   <li class="menu-item">
                       <a href="/salereturn" class="menu-link" data-url="/item_management">
@@ -83,15 +78,7 @@
                     </a>
                 </li>
                   <!-- Logout -->
-                  <li class="menu-item">
-                    <form id="logout-form" action="/logout" method="POST" style="display: none;">
-                        @csrf <!-- Include CSRF token for Laravel -->
-                    </form>
-                    <a href="#" class="menu-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                        <i class="menu-icon tf-icons bx bx-power-off"></i>
-                        <div data-i18n="Logout">Logout</div>
-                    </a>
-                </li>
+
                 </ul>
             </aside>
             <!-- /Menu -->
@@ -140,10 +127,15 @@
                           </a>
                         </li>
                         <li>
-                          <a class="dropdown-item" href="#" class="menu-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                            <i class="bx bx-power-off me-2"></i>
-                            <span class="align-middle">Log Out</span>
-                          </a>
+                            <li class="menu-item">
+                                <form id="logout-form" action="/logout" method="POST" style="display: none;">
+                                    @csrf <!-- Include CSRF token for Laravel -->
+                                </form>
+                                <a href="#" class="menu-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                    <i class="menu-icon tf-icons bx bx-power-off"></i>
+                                    <div data-i18n="Logout">Logout</div>
+                                </a>
+                            </li>
                         </li>
                       </ul>
                     </li>

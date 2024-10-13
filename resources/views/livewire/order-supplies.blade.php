@@ -67,10 +67,7 @@
                                 <td class="text-center">{{ $order->total_price }}</td>
                                 <td class="text-center">{{ $order->order_date }}</td>
                                 <td class="text-center">{{ $order->status }}</td>
-                                <td class="text-center">
-                                    <button class="btn btn-warning" data-bs-target="#listModal" data-bs-toggle="modal"
-                                        wire:click="selectOrder({{ $order->purchase_order_id }})">View Details</button>
-                                </td>
+
                                 <td class="text-center">
                                     <div class="dropdown">
                                         <button class="btn btn-info dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">

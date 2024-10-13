@@ -51,12 +51,14 @@
                                         <td>{{ $i->sellingPrice }}</td>
                                         <td class="flex text-center">
                                             <button class="btn btn-sm btn-primary" class="me-3" data-bs-toggle="modal"
-                                                data-bs-target="#updateModal" wire:click="selectItem({{ $i->itemID }})">
+                                                data-bs-target="#updateModal"
+                                                wire:click="selectItem({{ $i->itemID }})">
                                                 <i class="fa fa-edit" aria-hidden="true"></i>
                                             </button>
 
                                             <button class="btn btn-danger btn-sm" data-bs-toggle="modal"
-                                                data-bs-target="#deleteModal" wire:click="selectItem({{ $i->itemID }})">
+                                                data-bs-target="#deleteModal"
+                                                wire:click="selectItem({{ $i->itemID }})">
                                                 <i class="fa fa-trash" aria-hidden="true"></i>
                                             </button>
                                         </td>
@@ -77,7 +79,8 @@
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="deleteModalLabel">Delete Item</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
 
@@ -90,7 +93,8 @@
                             </p>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-sm btn-secondary"
+                                data-bs-dismiss="modal">Cancel</button>
                             <button type="submit" class="btn btn-sm btn-primary">Delete</button>
                         </div>
                     </div>
@@ -163,7 +167,8 @@
                             <div class="col-lg-12 col-sm-6 col-12">
                                 <div class="form-group">
                                     <label>Selling Price</label>
-                                    <input type="text" placeholder="Selling Price" id="sellingPriceInput" readonly>
+                                    <input type="text" placeholder="Selling Price" id="sellingPriceInput"
+                                        readonly>
                                 </div>
                             </div>
 
@@ -213,7 +218,8 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="updateModalLabel">New Item</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
 
@@ -295,58 +301,62 @@
         </div>
     </div>
     <div class="modal fade" id="vatModal" tabindex="-1" aria-labelledby="vatModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="vatModalLabel">Vatable Items</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                @if($vatable->isEmpty())
-                    <p>No vatable items found.</p>
-                @else
-                    <div class="container">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Item Name</th>
-                                    <th>Description</th>
-                                    <th>Category</th>
-                                    <th>Unit Price</th>
-                                    <th>VAT (12%)</th>
-                                    <th>VAT Value Added</th>
-                                    <th>Supplier</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($vatable as $item)
-                                    @php
-                                        $vat = $item->isVatable ? $item->unitPrice * 0.12 : 0; // Calculate VAT only if item is vatable
-                                        $sellingPrice = $item->unitPrice + $vat; // Total selling price
-                                    @endphp
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="vatModalLabel">Vatable Items</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    @if ($vatable->isEmpty())
+                        <p>No vatable items found.</p>
+                    @else
+                        <div class="container">
+                            <table class="table">
+                                <thead>
                                     <tr>
-                                        <td>{{ $item->itemName }}</td>
-                                        <td>{{ $item->description }}</td>
-                                        <td>{{ $item->itemCategory }}</td>
-                                        <td>P {{ number_format($item->unitPrice, 2) }}</td>
-                                        <td>P {{ number_format($vat, 2) }}</td>
-                                        <td>P {{ number_format($sellingPrice, 2) }}</td>
-                                        <td>{{ $item->supplier->name ?? 'No Name' }}</td>
+                                        <th>Item Name</th>
+                                        <th>Description</th>
+                                        <th>Category</th>
+                                        <th>Unit Price</th>
+                                        <th>VAT (12%)</th>
+                                        <th>VAT Value Added</th>
+                                        <th>Supplier</th>
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    @foreach ($vatable as $item)
+                                        @php
+                                            // Calculate VAT only if item is vatable
+                                            $vat = $item->isVatable ? $item->unitPrice * 0.12 : 0;
+                                            // Total selling price
+                                            $sellingPrice = $item->unitPrice + $vat;
+                                        @endphp
+                                        <tr>
+                                            <td>{{ $item->itemName }}</td>
+                                            <td>{{ $item->description }}</td>
+                                            <td>{{ $item->itemCategory }}</td>
+                                            <td>P {{ number_format($item->unitPrice, 2) }}</td>
+                                            <td>P {{ number_format($vat, 2) }}</td>
+                                            <td>P {{ number_format($sellingPrice, 2) }}</td>
+                                            <td> {{ $item->supplierItem->first()->supplier->CompanyName }}</td>
 
 
-                    </div>
-                @endif
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+
+
+                        </div>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 
 

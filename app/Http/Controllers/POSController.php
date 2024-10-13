@@ -35,7 +35,7 @@ class POSController extends Controller
             if ($role === 'Manager') {
                 return redirect()->route('dashboard'); // Manager's dashboard
             } elseif ($role === 'Cashier') {
-                return redirect()->route('cashierdashboard'); // Cashier's dashboard
+                return redirect()->route('saletransaction'); // Cashier's dashboard
             }
         }
 

@@ -206,13 +206,7 @@
                                         Stock Out
                                     </label>
                                 </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" value="Sales Return"
-                                        name="remarks" id="flexCheckDefault" wire:model="remarks">
-                                    <label class="form-check-label" for="flexCheckDefault">
-                                        Sales Return
-                                    </label>
-                                </div>
+
                             </div>
 
 

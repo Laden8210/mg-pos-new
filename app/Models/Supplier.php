@@ -31,10 +31,11 @@ class Supplier extends Model
                      ->orWhere('Status', 'like', '%' . $value . '%');
     }
 
-    // Relationship to SupplierItem
+
+
     public function supplierItems()
     {
-        return $this->hasMany(SupplierItem::class, 'supplierID', 'SupplierId'); // Ensure correct keys
+        return $this->hasMany(SupplierItem::class, 'SupplierId', 'SupplierId'); // Correct keys
     }
 
     // Relationship to Inventory
