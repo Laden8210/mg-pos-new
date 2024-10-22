@@ -24,11 +24,11 @@ return new class extends Migration
             $table->integer('quantity');
             $table->timestamps();
         });
-        // Schema::table('inventory', function (Blueprint $table) {
-        //     $table->dropColumn(['expiry_date', 'date_received', 'qtyonhand', 'batch', 'SupplierId', 'itemID']);
-        //     $table->integer('re_order_point')->nullable();
+        Schema::table('inventory', function (Blueprint $table) {
+            $table->dropColumn(['expiry_date', 'date_received', 'qtyonhand', 'batch', 'SupplierId', 'itemID']);
+            $table->integer('re_order_point')->nullable();
 
-        // });
+        });
     }
 
     /**
