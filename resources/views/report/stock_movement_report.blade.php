@@ -38,7 +38,7 @@
                             <th>OPENING STOCK</th>
                             <th>STOCK IN</th>
                             <th>STOCK OUT</th>
-                            <th>SALES RETURN</th>
+
                             <th>CLOSING STOCK</th>
                             <th>STOCK MOVEMENT</th>
                         </thead>
@@ -48,7 +48,7 @@
                             <tr>
                                 <td>{{ $stockCard->item->itemID }}</td>
                                 <td>{{ $stockCard->item->itemName }}</td>
-                                <td>{{ $stockCard->Quantity }}</td>
+                                <td>{{ $stockCard->inventory->quantity }}</td>
                                 <td>
 
                                     @php
@@ -72,15 +72,7 @@
                                     @endphp
 
                                 </td>
-                                <td>
-                                    @php
-                                        if ($stockCard->Remarks == 'Sales Return') {
-                                            echo $stockCard->Quantity;
-                                        } else {
-                                            echo 0;
-                                        }
-                                    @endphp
-                                </td>
+
                                 <td>{{ $stockCard->inventory->qtyonhand  + $stockCard->Quantity }}</td>
                                 <td>
 

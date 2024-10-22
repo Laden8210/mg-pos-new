@@ -64,14 +64,16 @@
                                     @foreach ($purchaseOrder->purchaseItems as $purchaseItem)
                                         <tr>
                                             <td>{{ $purchaseItem->purchase_item_id }}</td>
-                                            <td>{{ $purchaseOrder->order_date }}</td>
+
+                                            <td>{{ \Carbon\Carbon::parse($purchaseOrder->order_date )->format('F d, Y') }}</td>
                                             <td>{{ $purchaseItem->item->itemName }}</td>
                                             <td>{{ $purchaseOrder->supplier->CompanyName }}</td>
                                             <td>{{ $purchaseItem->quantity }}</td>
-                                            <td>{{ $purchaseItem->item->unitPrice }}</td>
+                                            <td>₱{{ $purchaseItem->unit_price }}</td>
                                             <td>{{ $purchaseItem->total_price }}</td>
                                             <td>{{ $purchaseOrder->status }}</td>
-                                            <td>{{ $purchaseOrder->delivery_date }}</td>
+                                            <td>{{ \Carbon\Carbon::parse($purchaseOrder->delivery_date )->format('F d, Y') }}</td>
+
                                             <td>{{ $purchaseItem->inventory->original_quantity ?? '' }}</td>
                                             {{-- <td>{{  }}</td>
                                         <td>{{  }}</td> --}}

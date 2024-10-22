@@ -38,26 +38,39 @@
                         <table class="table  datanew">
                             <thead>
                                 <tr>
-                                    <th>Delivery Id</th>
+                                    <th>Purchase Order</th>
                                     <th>Company Name</th>
                                     <th>Contact Person</th>
                                     <th>Contact No.</th>
                                     <th>Date Delivered</th>
                                     <th>Address</th>
                                     <th>Total Item</th>
+                                    <th>View</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($deliveries as $delivery)
                                     <tr>
-                                        <td>{{ $delivery->purchase_order_id }}</td>
+                                        <td>{{ $delivery->purchase_number }}</td>
                                         <td>{{ $delivery->supplier->CompanyName }}</td>
                                         <td>{{ $delivery->supplier->ContactPerson }}</td>
                                         <td>{{ $delivery->supplier->ContactNumber }}</td>
-                                        <td>{{ $delivery->delivery_date }}</td>
+                                        <td>{{ \Carbon\Carbon::parse($delivery->delivery_date)->setTimezone('Asia/Manila')->format('F j, Y') }}</td>
                                         <td>{{ $delivery->supplier->Address }}</td>
                                         <td>{{ $delivery->quantity }}</td>
+                                        <td>
+                                            <button class="btn btn-primary" data-bs-toggle="modal"
+                                                wire:click="viewOrderDetails({{ $delivery->purchase_order_id }})"
+                                                data-bs-target="#listModal">View Item</button>
+
+                                                <a href="{{ route('print-purchase-order', $delivery->purchase_number) }}" target="_blank" class="btn btn-success text-white">
+                                                    View Receipt
+                                                </a>
+
+                                        </td>
+
+
                                         <td>
                                             <span
                                                 class="badges {{ $delivery->status === 'Completed' ? 'bg-lightgreen' : 'bg-lightred' }}">
@@ -74,6 +87,64 @@
             </div>
         </div>
     </div>
+
+
+
+    <div class="modal fade" id="listModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"
+        wire:ignore.self>
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Order Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-responsive">
+                        <thead>
+                            <tr>
+                                <th>Item Name</th>
+                                <th>Quantity</th>
+                                <th>Unit Price</th>
+
+                                <th>Selling Price</th>
+
+                                <th>Received Date</th>
+                                <th>Expiration Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if ($orderDetails)
+                                @foreach ($orderDetails as $order)
+                                    <tr>
+                                        <td>{{ $order->item->itemName }}</td>
+                                        <td>{{ $order->inventoryItem->quantity ?? '0' }}</td>
+                                        <td>{{ $order->inventoryItem->unit_price ?? '0.00'}}</td>
+
+                                        <td>{{ $order->inventoryItem->selling_price ?? '0.00' }}</td>
+                                        <td>{{ $order->inventoryItem->received_date ?? '' }}</td>
+                                        <td>{{ $order->inventoryItem->expiry_date ?? '' }}</td>
+                                        <td>
+                                            <button class="btn btn-sm fs-10" data-bs-target="#editItem"
+                                                data-bs-toggle="modal"
+                                                wire:click="editItem({{ $order->purchase_item_id }})">
+                                                <i class="fa fa-edit
+                                                "
+                                                    aria-hidden="true"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @endforeach
+
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Modal -->
     <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered ">
@@ -140,4 +211,58 @@
             </div>
         </div>
     </div>
+
+
+    <div class="modal fade" id="editItem" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"
+        wire:ignore.self>
+        <div class="modal-dialog modal-dialog-centered ">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Update Order</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form wire:submit.prevent="updateItem">
+                    <div class="modal-body">
+                        @if (session()->has('message'))
+                            <div class="alert alert-success">
+                                {{ session('message') }}
+                            </div>
+                        @endif
+
+                        @if (session()->has('error'))
+                            <div class="alert alert-danger">
+                                {{ session('error') }}
+                            </div>
+
+                        @endif
+                        <div class="form-group">
+                            <label for="">Item Name</label>
+                            <input type="text" class="form-control" readonly wire:model="itemEditName">
+
+                        </div>
+
+                        <div class="from-group">
+                            <label for="">Quantity</label>
+                            <input type="number" class="form-control" wire:model="itemEditQuantity">
+                        </div>
+
+                        <div>
+                            <label for="">Price</label>
+                            <input type="number" class="form-control" wire:model="itemEditPrice">
+                        </div>
+
+                        <div>
+                            <label for="">Expiration Date</label>
+                            <input type="date" class="form-control" wire:model="itemExpirationDate">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+
+                        <button type="submit" class="btn btn-primary">Edit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </div>

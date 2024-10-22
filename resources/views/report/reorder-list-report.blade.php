@@ -135,49 +135,53 @@
 
         <!-- Table with applicants data -->
         <table class="table-applicants">
-            <thead>
-                <th>ITEM NUMBER</th>
-                <th>ITEM NAME</th>
-                <th>SUPPLIER NAME</th>
-                <th>QTY ON HAND</th>
-                <th>REORDER POINT</th>
-                <th>ORIGINAL QUANTITY</th>
-                <th>LAST ORDER</th>
-                <th>UNIT PRICE</th>
-                <th>Status</th>
-            </thead>
-            <tbody>
-                @foreach($reorderItems as $item)
-                <tr>
-                    <td>{{ $item->batch }}</td>
 
-                    <td>{{ $item->item->itemName ?? 'N/A' }}</td> <!-- Access item name -->
-                    <td>{{ $item->supplier->CompanyName ?? 'N/A' }}</td> <!-- Access supplier name -->
+                <thead>
+                    <th>ITEM NUMBER</th>
+                    <th>ITEM NAME</th>
+                    <th>SUPPLIER NAME</th>
+                    <th>QTY ON HAND</th>
+                    <th>REORDER POINT</th>
+                    <th>ORIGINAL QUANTITY</th>
+                    <th>LAST ORDER</th>
+                    <th>UNIT PRICE</th>
+                    <th>Status</th>
+                </thead>
+                <tbody>
+                    @foreach($reorderItems as $item)
+                        <tr>
+                            <td>ITEM-{{ $item->inventory_item_id}}</td>
 
-                    <td>{{ $item->qtyonhand }}</td> <!-- Quantity on hand -->
-                    <td>{{ $item->reorder_point }}</td><!-- Reorder point -->
-                    <td>{{$item->original_quantity}}</td><!--ORIGINAL QUANTITY HERE-->
-                    <td>{{$item->date_received}}</td><!--UNIT PRICE HERE-->
-                    <td>{{$item->item->unitPrice}}</td>
-                    <td>
-                        @php
 
-                            $threshold = $item->reorder_point;
-                            $qty = $item->qtyonhand;
+                            <td>{{ $item->item->itemName ?? 'N/A' }}</td> <!-- Access item name -->
+                            <td>{{ $item->inventory->supplier->CompanyName ?? 'N/A' }}</td> <!-- Access supplier name -->
 
-                            if($qty <= $threshold){
-                                echo "Reorder";
-                            }else{
-                                echo "Sufficient";
-                            }
-                        @endphp
+                            <td>{{ $item->quantity }}</td> <!-- Quantity on hand -->
+                            <td>{{ ceil($item->quantity * 0.4) }}</td><!-- Reorder point -->
 
-                    </td><!--TOTAL COST HERE-->
-                </tr>
-            @endforeach
-            </tbody>
+                            <td>{{$item->purchaseItem->quantity}}</td><!--ORIGINAL QUANTITY HERE-->
+                            <td>{{ \Carbon\Carbon::parse($item->received_date)->format('F d, Y') }}</td><!--UNIT PRICE HERE-->
 
-        </table>
+                            <td>{{$item->unit_price}}</td>
+                            <td>
+                                @php
+
+                                    $threshold = $item->reorder_point;
+                                    $qty = $item->qtyonhand;
+
+                                    if($qty <= $threshold){
+                                        echo "Reorder";
+                                    }else{
+                                        echo "Sufficient";
+                                    }
+                                @endphp
+
+                            </td><!--TOTAL COST HERE-->
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+
         <div class="report-info">
             <p class="prepared-by">Prepared By:</p>
             <h5>{{ Auth::user()->firstname . " " . Auth::user()->middle . " " . Auth::user()->lastname}}</h5>

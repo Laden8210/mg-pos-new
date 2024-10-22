@@ -16,7 +16,7 @@ class ItemManagement extends Component
     public $category;
     public $barcode;
     public $description;
-    public $unitPrice;
+
     public $isVatable;
     public $search = '';
     public $selectedItem;
@@ -50,11 +50,12 @@ class ItemManagement extends Component
             'category' => 'required|string|max:255',
             'barcode' => 'nullable|string|size:13',
             'description' => 'nullable|string|max:500',
-            'unitPrice' => 'required|numeric|min:0',
-            'isVatable' => 'boolean'
+
         ], [
             // Custom validation messages...
         ]);
+
+
 
 
         Item::create([
@@ -62,15 +63,14 @@ class ItemManagement extends Component
             'itemCategory' => $this->category,
             'barcode' => $this->barcode,
             'description' => $this->description,
-            'unitPrice' => $this->unitPrice,
-            'sellingPrice' => $this->unitPrice * 1.2,
+
             'status' => 'Active',
-            'isVatable' => $this->isVatable
+            'isVatable' => $this->isVatable == null ? false : true,
         ]);
 
 
         // Reset fields
-        $this->reset(['name', 'category', 'barcode', 'description', 'unitPrice', 'supplier']);
+        $this->reset(['name', 'category', 'barcode', 'description', 'supplier']);
         session()->flash('message', 'Item successfully added.');
     }
 
@@ -85,7 +85,7 @@ class ItemManagement extends Component
             $this->category = $item->itemCategory; // Populate the category
             $this->barcode = $item->barcode; // Populate the barcode
             $this->description = $item->description; // Populate the description
-            $this->unitPrice = $item->unitPrice; // Populate the unit price
+
             // Optionally, you could also add the isVatable property if needed
             $this->isVatable = $item->isVatable;
         } else {
@@ -100,9 +100,9 @@ class ItemManagement extends Component
         $this->validate([
             'name' => 'required|string|max:255',
             'category' => 'required|string|max:255',
-            'barcode' => 'required|string|size:12',
+            'barcode' => 'required|string|size:13',
             'description' => 'nullable|string|max:500',
-            'unitPrice' => 'required|numeric|min:0',
+
             'isVatable' => 'boolean'
         ], [
             'name.required' => 'The name field is required.',
@@ -116,9 +116,7 @@ class ItemManagement extends Component
             'barcode.size' => 'The barcode must be exactly 12 characters.',
             'description.string' => 'The description must be a string.',
             'description.max' => 'The description may not be greater than 500 characters.',
-            'unitPrice.required' => 'The unit price field is required.',
-            'unitPrice.numeric' => 'The unit price must be a number.',
-            'unitPrice.min' => 'The unit price must be at least 0.',
+
         ]);
 
 
@@ -127,7 +125,7 @@ class ItemManagement extends Component
             'category' => 'required',
             'barcode' => 'required',
             'description' => 'required',
-            'unitPrice' => 'required',
+
         ]);
 
         $item = Item::find($this->selectedItem->itemID);
@@ -136,8 +134,8 @@ class ItemManagement extends Component
             'itemCategory' => $this->category,
             'barcode' => $this->barcode,
             'description' => $this->description,
-            'unitPrice' => $this->unitPrice,
-            'sellingPrice' => $this->unitPrice * 1.2, // calculate selling price as 20% more than unit price
+
+
 
             'isVatable' => $this->isVatable == null,
         ]);

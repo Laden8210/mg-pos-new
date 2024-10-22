@@ -15,19 +15,11 @@ class Inventory extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'batch',
-        'itemID',
-        'itemName',
-        'description',
-        'itemCategory',
-        'qtyonhand',
-        'status',
+        'inventoryId',
         'original_quantity',
-        'expiry_date',
-        'date_received',
-        'SaleReturnID',
-        'supplierItemID',
-        'SupplierId',
+        'status',
+        're_order_point',
+        'SupplierId'
 
     ];
 
@@ -40,6 +32,12 @@ class Inventory extends Model
     public function supplierItem()
     {
         return $this->belongsTo(SupplierItem::class, 'itemID', 'ItemID');
+    }
+
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'SupplierId');
     }
 
     public function inventory()
@@ -59,9 +57,10 @@ class Inventory extends Model
         return $this->hasManyThrough(PurchaseOrder::class, PurchaseItem::class, 'inventoryId', 'purchase_order_id', 'inventoryId', 'purchase_order_id');
     }
 
-    public function supplier()
+
+    public function inventoryItem()
     {
-        return $this->belongsTo(Supplier::class, 'SupplierId');
+        return $this->hasMany(InventoryItem::class, 'inventoryId', 'inventoryId');
     }
 
 
@@ -75,18 +74,14 @@ class Inventory extends Model
     ];
 
 
-    
+
     // Scope for searching inventory
     public function scopeSearch($query, $value)
     {
-        return $query->where('itemID', 'like', '%' . $value . '%')
-            ->orWhere('qtyonhand', 'like', '%' . $value . '%')
-            ->orWhere('expiry_date', 'like', '%' . $value . '%')
-            ->orWhere('date_received', 'like', '%' . $value . '%')
-            ->orWhereHas('item', function ($query) use ($value) {
-                $query->where('itemName', 'like', '%' . $value . '%')
-                    ->orWhere('itemCategory', 'like', '%' . $value . '%');
-            });
+        return $query->where('inventoryId', 'like', '%' . $value . '%')
+            ->orWhere('original_quantity', 'like', '%' . $value . '%')
+            ->orWhere('status', 'like', '%' . $value . '%')
+            ->orWhere('re_order_point', 'like', '%' . $value . '%');
     }
 
     // Calculate the reorder point based on original quantity

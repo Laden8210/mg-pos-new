@@ -120,7 +120,7 @@
             <thead>
                 <tr>
                     <th>Inventory ID</th>
-                    <th>Batch Number</th>
+
                     <th>Item Name</th>
                     <th>Category</th>
                     <th>Supplier Name</th>
@@ -138,19 +138,19 @@
                 @foreach ($salseStockCard as $inventory)
                     <tr>
                         <td>{{ $inventory->inventoryId }}</td>
-                        <td>{{ $inventory->batch }}</td>
+
                         <td>{{ $inventory->item->itemName ?? 'N/A' }}</td>
                         <td>{{ $inventory->item->itemCategory }}</td>
                         <!-- Accessing itemName via relationship -->
-                        <td>{{ $inventory->supplier->CompanyName ?? 'N/A' }}</td>
-                        <!-- Accessing CompanyName via relationship -->
-                        <td>{{ $inventory->original_quantity ?? 'N/A' }}</td>
+                        <td>{{ $inventory->inventory->supplier->CompanyName ?? 'N/A' }}</td>
+
+                        <td>{{ $inventory->purchaseItem->quantity ?? 'N/A' }}</td>
                         <!-- Accessing description via relationship -->
-                        <td>{{ $inventory->qtyonhand ?? 'N/A' }}</td>
+                        <td>{{ $inventory->purchaseItem->quantity  - $inventory->quantity ?? 'N/A' }}</td>
                         <!-- Accessing itemCategory via relationship -->
 
-                        <td>{{ $inventory->qtyonhand}}</td>
-                        <td>{{ number_format($inventory->original_quantity *.4, 0) }}</td>
+                        <td>{{ $inventory->quantity}}</td>
+                        <td>{{ number_format($inventory->quantity *.4, 0) }}</td>
 
                     </tr>
                 @endforeach

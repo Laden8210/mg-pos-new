@@ -59,16 +59,19 @@
                         <tbody>
                             @foreach($reorderItems as $item)
                                 <tr>
-                                    <td>{{ $item->batch }}</td>
+                                    <td>ITEM-{{ $item->inventory_item_id}}</td>
+
 
                                     <td>{{ $item->item->itemName ?? 'N/A' }}</td> <!-- Access item name -->
-                                    <td>{{ $item->supplier->CompanyName ?? 'N/A' }}</td> <!-- Access supplier name -->
+                                    <td>{{ $item->inventory->supplier->CompanyName ?? 'N/A' }}</td> <!-- Access supplier name -->
 
-                                    <td>{{ $item->qtyonhand }}</td> <!-- Quantity on hand -->
-                                    <td>{{ $item->reorder_point }}</td><!-- Reorder point -->
-                                    <td>{{$item->original_quantity}}</td><!--ORIGINAL QUANTITY HERE-->
-                                    <td>{{$item->date_received}}</td><!--UNIT PRICE HERE-->
-                                    <td>{{$item->item->unitPrice}}</td>
+                                    <td>{{ $item->quantity }}</td> <!-- Quantity on hand -->
+                                    <td>{{ ceil($item->quantity * 0.4) }}</td><!-- Reorder point -->
+
+                                    <td>{{$item->purchaseItem->quantity}}</td><!--ORIGINAL QUANTITY HERE-->
+                                    <td>{{ \Carbon\Carbon::parse($item->received_date)->format('F d, Y') }}</td><!--UNIT PRICE HERE-->
+
+                                    <td>₱{{$item->unit_price}}</td>
                                     <td>
                                         @php
 

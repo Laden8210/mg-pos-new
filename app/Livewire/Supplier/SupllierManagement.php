@@ -54,15 +54,17 @@ class SupllierManagement extends Component
             'Status' => $this->Status,
         ]);
 
+
+
         foreach ($this->selectedItem as $item){
             SupplierItem::create([
-                'SupplierId' => $supplier->SupplierId,
+                'supplierID' => $supplier->SupplierId,
                 'itemID' => $item,
             ]);
         }
 
 
-        session()->flash('message-create', 'Supplier successfully added.');
+        session()->flash('message', 'Supplier successfully added.');
 
          $this->reset();
     }

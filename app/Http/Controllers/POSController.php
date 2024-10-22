@@ -12,6 +12,7 @@ use App\Models\Employee; // Make sure this line is included
 use Illuminate\Support\Facades\Hash;
 use App\Models\Item;
 use App\Http\Controllers\Income;
+use App\Models\InventoryItem;
 use App\Models\SaleTransactionModel;
 use App\Models\Transactions;
 use Illuminate\Support\Facades\DB;
@@ -363,9 +364,9 @@ class POSController extends Controller
         $startDate = $request->input('start_date', now()->toDateString());
         $endDate = $request->input('end_date', now()->toDateString());
 
-        $salseStockCard = Inventory::with(['item', 'supplier'])
-            ->whereDate('date_received', '>=', $startDate)
-            ->whereDate('date_received', '<=', $endDate)
+        $salseStockCard = InventoryItem::with(['item', 'inventory', 'inventory.supplier', 'purchaseItem'])
+            ->whereDate('received_date', '>=', $startDate)
+            ->whereDate('received_date', '<=', $endDate)
             ->get();
 
         return view('report.inventory_report', compact('salseStockCard'));
@@ -379,8 +380,8 @@ class POSController extends Controller
         $startDate = $request->input('start_date', now()->toDateString());
         $endDate = $request->input('end_date', now()->toDateString());
         // Fetch all inventory items
-        $inventoryItems = Inventory::with(['item', 'supplier'])
-        ->whereBetween('date_received', [$startDate, $endDate])
+        $inventoryItems = InventoryItem::with(['item', 'inventory.supplier', 'purchaseItem'])
+        ->whereBetween('received_date', [$startDate, $endDate])
         ->get();
 
         // Filter items that have reached the reorder point

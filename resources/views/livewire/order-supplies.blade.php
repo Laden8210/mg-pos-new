@@ -15,13 +15,14 @@
                                 @endforeach
                             </select>
                         </div>
-                    <div class="form-group col-md-4">
-                        <label for="deliveryDate">Delivery Date</label>
-                        <input type="date" class="form-control" id="deliveryDate" wire:model="deliveryDate">
+                        <div class="form-group col-md-4">
+                            <label for="deliveryDate">Delivery Date</label>
+                            <input type="date" class="form-control" id="deliveryDate" wire:model="deliveryDate">
+                        </div>
                     </div>
-                </div>
                     <div>
-                        <button type="button" class="btn btn-success" data-bs-target="#exampleModal" data-bs-toggle="modal">Add Delivery</button>
+                        <button type="button" class="btn btn-success" data-bs-target="#exampleModal"
+                            data-bs-toggle="modal">Add Delivery</button>
                     </div>
                 </div>
 
@@ -32,15 +33,10 @@
 
                     <div class="d-flex justify-content-end gap-1 align-items-center">
                         <div class="form-group">
-                            <input type="text" class="form-control" id="searchItem" placeholder="Search Item" wire:model.debounce.300ms="searchItem">
+                            <input type="text" class="form-control" id="searchItem" placeholder="Search Item"
+                                wire:model.debounce.300ms="searchItem">
                         </div>
-                        <div class="form-group">
-                            <select class="form-select" wire:model="selectedCategory">
-                                <option value="">Category</option>
-                                <option value="Beverages">Beverages</option>
-                                <option value="Grocery">Grocery</option>
-                            </select>
-                        </div>
+
                     </div>
                 </div>
 
@@ -50,7 +46,7 @@
                             <th class="text-center" scope="col">Purchase Order No.</th>
                             <th class="text-center" scope="col">Supplier</th>
                             <th class="text-center" scope="col">Total Item</th>
-                            <th class="text-center" scope="col">Total Cost</th>
+                            <th class="text-center" scope="col">Total Price</th>
                             <th class="text-center" scope="col">Date Created</th>
                             <th class="text-center" scope="col">Status</th>
                             <th class="text-center" scope="col">View</th>
@@ -59,30 +55,48 @@
                     </thead>
                     <tbody>
                         @foreach ($orders as $order)
-
                             <tr>
+
                                 <td class="text-center">{{ $order->purchase_number }}</td>
                                 <td class="text-center">{{ $order->supplier->CompanyName }}</td>
                                 <td class="text-center">{{ $order->quantity }}</td>
-                                <td class="text-center">{{ $order->total_price }}</td>
-                                <td class="text-center">{{ $order->order_date }}</td>
+                                <td class="text-center">₱{{ $order->total_price }}</td>
+                                <td class="text-center">{{ \Carbon\Carbon::parse($order->order_date)->setTimezone('Asia/Manila')->format('F j, Y') }}</td>
                                 <td class="text-center">{{ $order->status }}</td>
 
                                 <td class="text-center">
+                                    <a href="{{ route('print-purchase-order', $order->purchase_number) }}"
+                                        target="_blank" class="btn btn-success text-white">
+                                        View Receipt
+                                    </a>
+
+                                </td>
+
+                                <td class="text-center">
                                     <div class="dropdown">
-                                        <button class="btn btn-info dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <button class="btn btn-info dropdown-toggle" type="button"
+                                            id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
                                             Update Status
                                         </button>
                                         <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                                            <li><button class="dropdown-item" wire:click="completeOrder({{ $order->purchase_order_id }})">Complete</button></li>
-                                            <li><button class="dropdown-item" wire:click="cancelOrder({{ $order->purchase_order_id }})">Cancel</button></li>
+                                            <li>
+                                                <button class="dropdown-item"
+                                                    wire:click="completeOrder({{ $order->purchase_order_id }})">Complete</button>
+                                            </li>
+                                            <li>
+                                                <button class="dropdown-item" data-bs-toggle="modal"
+                                                wire:click="viewOrderDetails({{ $order->purchase_order_id }})"
+                                                data-bs-target="#listModal">Update order</button>
+                                            </li>
+                                            <li>
+                                                <button class="dropdown-item"
+                                                    wire:click="cancelOrder({{ $order->purchase_order_id }})">Cancel</button>
+                                            </li>
                                         </ul>
-                                        <a href="{{ route('print-purchase-order', $order->purchase_number) }}" target="_blank" class="btn btn-success text-white">
-                                            View Receipt
-                                        </a>
-
                                     </div>
                                 </td>
+
+
                             </tr>
                         @endforeach
 
@@ -93,29 +107,131 @@
         </div>
     </div>
 
-    @if (session()->has('message-status'))
-    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header">
-                <i class="fas fa-info-circle me-2" style="font-size: 1.5rem;"></i>
-                <strong class="me-auto">Order Status</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    <div class="modal fade" id="listModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"
+    wire:ignore.self>
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Update Order Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="toast-body">
-                {{ session('message-status') }}
+            <div class="modal-body">
+                <table class="table table-responsive">
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+
+
+
+                            <th>Expiration Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if ($orderDetails)
+                            @foreach ($orderDetails as $order)
+                                <tr>
+                                    <td>{{ $order->item->itemName }}</td>
+                                    <td>{{ $order->quantity }}</td>
+                                    <td>{{ $order->unit_price }}</td>
+
+
+                                    <td>{{ $order->inventoryItem->expiry_date ?? '' }}</td>
+
+                                    <td>
+                                        <button class="btn btn-sm fs-10" data-bs-target="#editItem"
+                                            data-bs-toggle="modal"
+                                            wire:click="editItemOrder({{ $order->purchase_item_id }},{{$order->purchase_order_id}})">
+                                            <i class="fa fa-edit
+                                            "
+                                                aria-hidden="true"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            @endforeach
+
+                        @endif
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <div class="modal fade" id="editItem" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"
+        wire:ignore.self>
+        <div class="modal-dialog modal-dialog-centered ">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Update Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form wire:submit.prevent="updateItemOrder">
+                    <div class="modal-body">
+                        @if (session()->has('message'))
+                            <div class="alert alert-success">
+                                {{ session('message') }}
+                            </div>
+                        @endif
+
+                        @if (session()->has('error'))
+                            <div class="alert alert-danger">
+                                {{ session('error') }}
+                            </div>
+
+                        @endif
+                        <div class="form-group">
+                            <label for="">Item Name</label>
+                            <input type="text" class="form-control" readonly wire:model="itemEditName">
+
+                        </div>
+
+                        <div class="from-group">
+                            <label for="">Quantity</label>
+                            <input type="number" class="form-control" wire:model="itemEditQuantity">
+                        </div>
+
+                        <div>
+                            <label for="">Unit Price</label>
+                            <input type="number" class="form-control" wire:model="itemEditPrice">
+                        </div>
+
+
+                    </div>
+                    <div class="modal-footer">
+
+                        <button type="submit" class="btn btn-primary">Edit</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 
-    <script>
-        // Auto-hide the toast after 2 seconds
-        var toastElement = document.querySelector('.toast');
-        var toast = new bootstrap.Toast(toastElement); // Initialize Bootstrap toast
-        setTimeout(function() {
-            toast.hide(); // Use Bootstrap method to hide the toast
-        }, 2000);
-    </script>
-@endif
+    @if (session()->has('message-status'))
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <i class="fas fa-info-circle me-2" style="font-size: 1.5rem;"></i>
+                    <strong class="me-auto">Order Status</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    {{ session('message-status') }}
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Auto-hide the toast after 2 seconds
+            var toastElement = document.querySelector('.toast');
+            var toast = new bootstrap.Toast(toastElement); // Initialize Bootstrap toast
+            setTimeout(function() {
+                toast.hide(); // Use Bootstrap method to hide the toast
+            }, 2000);
+        </script>
+    @endif
 
 
 
@@ -157,7 +273,8 @@
 
 
                             <div>
-                                <button type="button" class="btn btn-primary" data-bs-target="#itemList" data-bs-toggle="modal">
+                                <button type="button" class="btn btn-primary" data-bs-target="#itemList"
+                                    data-bs-toggle="modal">
                                     Add Item
                                 </button>
 
@@ -168,8 +285,8 @@
                                         <td>Action</td>
                                         <td>Item Name</td>
                                         <td>Quantity</td>
-                                        <td>Price</td>
-                                        <td>Total</td>
+                                        <td>Unit Price</td>
+                                        <td>Total Price</td>
                                     </tr>
                                 </th>
                                 <tbody>
@@ -240,6 +357,11 @@
                             <label for="">Quantity</label>
                             <input type="number" class="form-control" wire:model="itemQuantity">
                         </div>
+
+                        <div class="from-group">
+                            <label for="">Unit Price</label>
+                            <input type="number" class="form-control" wire:model="itemPrice">
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -267,8 +389,9 @@
                             <tr>
                                 <th>Item Name</th>
                                 <th>Quantity</th>
-                                <th>Price</th>
+                                <th>Unit Price</th>
                                 <th>Total</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -279,6 +402,14 @@
                                         <td>{{ $order->quantity }}</td>
                                         <td>{{ $order->unit_price }}</td>
                                         <td>{{ $order->total_price }}</td>
+                                        <td>
+                                            <button class="btn btn-sm fs-10" data-bs-target="#editItem"
+                                                data-bs-toggle="modal" wire:click="editItem({{ $order->item_id }})">
+                                                <i class="fa fa-edit
+                                                "
+                                                    aria-hidden="true"></i>
+                                            </button>
+                                        </td>
                                     </tr>
                                 @endforeach
 
@@ -303,7 +434,12 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form wire:submit.prevent="updateItem">
+
                     <div class="modal-body">
+
+
+
+
                         <div class="form-group">
                             <label for="">Item Name</label>
                             <input type="text" class="form-control" readonly value="{{ $itemEditName }}">

@@ -47,7 +47,11 @@ class PurchaseOrder extends Model
             $query->where('CompanyName', 'like', '%' . $search . '%')
                 ->orWhere('ContactPerson', 'like', '%' . $search . '%')
                 ->orWhere('ContactNumber', 'like', '%' . $search . '%');
-        });
+        })
+            ->orWhere('purchase_number', 'like', '%' . $search . '%')
+            ->orWhere('order_date', 'like', '%' . $search . '%')
+            ->orWhere('delivery_date', 'like', '%' . $search . '%')
+            ->orWhere('status', 'like', '%' . $search . '%');
     }
 
     // Calculate total value of items in the purchase order

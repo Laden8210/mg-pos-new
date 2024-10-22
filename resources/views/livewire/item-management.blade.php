@@ -34,8 +34,6 @@
                                     <th>Description</th>
                                     <th>Barcode</th>
                                     <th>Category</th>
-                                    <th>Unit Price</th>
-                                    <th>Selling Price</th>
                                     <th>Select</th>
                                 </tr>
                             </thead>
@@ -47,8 +45,7 @@
                                         <td>{{ $i->description }}</td>
                                         <td>{{ $i->barcode }}</td>
                                         <td>{{ $i->itemCategory }}</td>
-                                        <td>{{ $i->unitPrice }}</td>
-                                        <td>{{ $i->sellingPrice }}</td>
+
                                         <td class="flex text-center">
                                             <button class="btn btn-sm btn-primary" class="me-3" data-bs-toggle="modal"
                                                 data-bs-target="#updateModal"
@@ -154,23 +151,7 @@
                                     @enderror
                                 </div>
                             </div>
-                            <div class="col-lg-12 col-sm-6 col-12">
-                                <div class="form-group">
-                                    <label>Unit Price</label>
-                                    <input type="text" class="form form-control" placeholder="Enter Unit Price"
-                                        wire:model="unitPrice" id="unitPriceInput">
-                                    @error('unitPrice')
-                                        <span class="text-danger">{{ $message }}</span>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="col-lg-12 col-sm-6 col-12">
-                                <div class="form-group">
-                                    <label>Selling Price</label>
-                                    <input type="text" placeholder="Selling Price" id="sellingPriceInput"
-                                        readonly>
-                                </div>
-                            </div>
+
 
                             <div class="col-lg-12 col-sm-6 col-12">
                                 <div class="form-group">
@@ -185,7 +166,7 @@
 
                             <div class="col-lg-12 col-sm-6 col-12">
                                 <input class="form-check-input" type="checkbox" name="flexRadioDefault"
-                                    id="flexRadioDefault1" wire:model="isVatable" value="1">
+                                    id="flexRadioDefault1" wire:model="isVatable">
                                 <label class="form-check-label" for="flexRadioDefault1">
                                     Is Vatable
                                 </label>
@@ -256,6 +237,7 @@
                                         <option>Select Status</option>
                                         <option>Beverages</option>
                                         <option>Snacks</option>
+                                        <option>Other</option>
                                     </select>
 
                                     @error('category')
@@ -263,28 +245,10 @@
                                     @enderror
                                 </div>
                             </div>
-                            <div class="col-lg-12 col-sm-6 col-12">
-                                <div class="form-group">
-                                    <label>Unit Price</label>
-                                    <input type="text" placeholder="Enter Unit Price" wire:model="unitPrice">
-                                    @error('unitPrice')
-                                        <span class="text-danger">{{ $message }}</span>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="col-lg-12 col-sm-6 col-12">
-                                <div class="form-group">
-                                    <label>Description</label>
-                                    <textarea type="text" placeholder="Enter Descriptions" wire:model="description">
-                                </textarea>
-                                    @error('category')
-                                        <span class="text-danger">{{ $message }}</span>
-                                    @enderror
-                                </div>
-                            </div>
+
                             <div class="col-lg-12 col-sm-6 col-12">
                                 <input class="form-check-input" type="radio" name="flexRadioDefault"
-                                    id="flexRadioDefault1">
+                                    id="flexRadioDefault1" wire:model="isVatable">
                                 <label class="form-check-label" for="flexRadioDefault1">
                                     Is Vatable
                                 </label>
@@ -327,23 +291,32 @@
                                 <tbody>
                                     @foreach ($vatable as $item)
                                         @php
+                                            // Ensure the item has an inventoryItem before accessing it
+                                            $latestInventoryItem = $item->inventoryItem->last();
+                                            $unitPrice = $latestInventoryItem->unit_price ?? 0;
+
                                             // Calculate VAT only if item is vatable
-                                            $vat = $item->isVatable ? $item->unitPrice * 0.12 : 0;
+                                            $vat = $item->isVatable ? $unitPrice * 0.12 : 0;
+
                                             // Total selling price
-                                            $sellingPrice = $item->unitPrice + $vat;
+                                            $sellingPrice = $unitPrice + $vat;
+
+                                            // Fetch the supplier company name, if available
+                                            $supplierCompanyName =
+                                                $item->supplierItem->first()->supplier->CompanyName ?? '';
                                         @endphp
+
                                         <tr>
                                             <td>{{ $item->itemName }}</td>
                                             <td>{{ $item->description }}</td>
                                             <td>{{ $item->itemCategory }}</td>
-                                            <td>P {{ number_format($item->unitPrice, 2) }}</td>
-                                            <td>P {{ number_format($vat, 2) }}</td>
+                                            <td>P {{ number_format($unitPrice, 2) }}</td>
+                                            <td>P {{ number_format($unitPrice, 2) }}</td>
                                             <td>P {{ number_format($sellingPrice, 2) }}</td>
-                                            <td> {{ $item->supplierItem->first()->supplier->CompanyName }}</td>
-
-
+                                            <td>{{ $supplierCompanyName }}</td>
                                         </tr>
                                     @endforeach
+
                                 </tbody>
                             </table>
 

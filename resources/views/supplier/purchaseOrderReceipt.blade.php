@@ -79,16 +79,16 @@
             @php
                 $totalAmount = 0;
             @endphp
-            @foreach($purchaseOrder->items as $item)
+            @foreach($purchaseOrder->purchaseItems as $item)
             <tr>
                 <td>{{ $item->item->itemID}}</td>
                 <td>{{ $item->item->itemName }}</td>
                 <td>{{ $item->quantity }}</td>
-                <td>P{{ number_format($item->item->unitPrice, 2) }}</td>
-                <td>P{{ number_format($item->quantity * $item->item->unitPrice, 2) }}</td>
+                <td>P{{ number_format($item->unit_price, 2) }}</td>
+                <td>P{{ number_format($item->quantity * $item->unit_price, 2) }}</td>
 
                 @php
-                    $totalAmount += $item->quantity * $item->item->unitPrice;
+                    $totalAmount += $item->quantity * $item->unit_price;
                 @endphp
 
             </tr>
@@ -109,7 +109,7 @@
         $currentDate = now()->format('F d, Y'); // Format the current date as 'Month Day, Year'
     @endphp
 
-    <p><strong>Prepared By:</strong>{{ $employee}}</p>
+    <p><strong>Prepared By: </strong>{{ $employee}}</p>
     <p><strong>Date:</strong> {{ $currentDate }}</p>
 
     </div>

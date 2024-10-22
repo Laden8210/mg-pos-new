@@ -5,11 +5,13 @@ namespace App\Livewire;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Inventory;
+use App\Models\InventoryItem;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseItem;
 use App\Models\StockCard;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use App\Models\Item;
 
 class InventoryManagement extends Component
 {
@@ -26,8 +28,14 @@ class InventoryManagement extends Component
     public $remarks;
     public $adjustInventory = false;
 
+    public $selectedItems = [];
+
+    public $reorderCard = false;
+
+
     public $saleReturn = false;
 
+    public $selectSupplier;
     public function mount()
     {
         $this->search = '';
@@ -37,10 +45,14 @@ class InventoryManagement extends Component
     public function updatedSelectedItem($value)
     {
         // This method will be called whenever selectedItem changes
-        $this->stockCardInventories = StockCard::whereHas('inventory', function ($query) use ($value) {
-                $query->where('itemID', $value);
-            })->with('inventory')->get();
+        $this->stockCardInventories = StockCard::with(['inventoryItem.item']) // Load related item for each inventory item
+            ->whereHas('inventoryItem', function ($query) use ($value) {
+                $query->where('itemID', $value); // Filter based on itemID
+            })
+            ->get();
     }
+
+
 
     public function adjustInventory()
     {
@@ -105,36 +117,44 @@ class InventoryManagement extends Component
         $supplies = PurchaseOrder::all();
         $supplier = Supplier::all();
 
-        // Load related models with `with()`, aggregate fields with `selectRaw()`
-        $inventories = Inventory::with(['item', 'purchaseItems', 'purchaseOrders', 'supplierItem', 'supplier']) // Load relationships
-            ->selectRaw('inventoryId, batch, itemID, qtyonhand as total_qtyonhand, original_quantity as total_original_quantity, SupplierId, expiry_date') // Aggregate inventory fields
+
+
+        $inventories = InventoryItem::with('inventory', 'item')
             ->when($this->search, function ($query) {
-                $query->whereHas('purchaseOrders', function ($query) {
-                    $query->where('SupplierName', 'like', '%' . $this->search . '%');
-                });
+                $query->where('itemID', $this->search);
             })
-            ->where('qtyonhand', '>', 0) // Filter out items with zero quantity
+            ->join('inventory', 'inventory_items.inventoryId', '=', 'inventory.inventoryId') // Join inventories table
+            ->selectRaw('itemID, SUM(quantity) as total_quantity, MIN(inventory.re_order_point) as re_order_point, inventory.inventoryId') // Use MIN to get the first re_order_point
+            ->groupBy('itemID', 'inventory.inventoryId') // Group by itemID and inventoryId
             ->paginate(10);
 
-        foreach ($inventories as $inventory) {
-            $this->checkReorderPoint($inventory); // Process reorder point check
-        }
-        $items = Inventory::with('item')
-            ->groupBy('itemID')
-            ->selectRaw('itemID, MAX(inventoryId) as inventoryId')
-            ->get();
+            $reorder = InventoryItem::with('inventory', 'item')
+            ->when($this->search, function ($query) {
+                $query->where('itemID', $this->search);
+            })
+            ->join('inventory', 'inventory_items.inventoryId', '=', 'inventory.inventoryId') // Join inventories table
+            ->selectRaw('
+                inventory_items.itemID,
+                SUM(inventory_items.quantity) as total_quantity,
+                MIN(inventory.re_order_point) as re_order_point,
+                inventory.inventoryId,
+                inventory.SupplierId
+            ') // Select fields with MIN for re_order_point
+            ->where('inventory.SupplierId',$this->selectSupplier) // Filtering by SupplierId
+            ->groupBy('inventory_items.itemID', 'inventory.inventoryId', 'inventory.SupplierId') // Group by necessary fields
+            ->paginate(10);
 
 
-
+        $items = Item::all();
 
 
         return view('livewire.inventory-management', [
             'inventories' => $inventories, // Pass inventory data
             'supplies' => $supplies, // Pass supplier data
             'supplier' => $supplier, // Pass supplier data
-            'items' => $items, // Pass items data
-            'stockCardInventories' => $this->stockCardInventories, // Pass stock card inventories
-
+            'items' => $items, // Pass item data
+            'stockCardInventories' => $this->stockCardInventories,
+            'reorder' => $reorder
         ]);
     }
 
@@ -176,34 +196,48 @@ class InventoryManagement extends Component
 
     public function confirmReorder($inventoryId)
     {
-        $inventory = Inventory::find($inventoryId);
+        $inventory = Inventory::with('inventoryItem', 'inventoryItem.item', 'purchaseOrders')
+            ->find($inventoryId);
+
+        $item = InventoryItem::with(['purchaseItem', 'purchaseItem.purchaseOrders'])
+            ->where('inventoryId', $inventoryId)
+            ->orderBy('inventory_item_id', 'desc') // Ensure 'inventory_item_id' is the correct column
+            ->first();
+
+
+        $purchaseOrder = PurchaseOrder::where('SupplierId', $inventory->SupplierId)
+
+            ->latest('purchase_order_id')
+            ->first();
+
 
         if ($inventory) {
 
+            if ($purchaseOrder->status == 'Completed' || $purchaseOrder->status == 'Cancelled') {
+                $purchaseOrder = PurchaseOrder::create([
+                    'SupplierId' => $purchaseOrder->SupplierId,
+                    'order_date' => now(),
+                    'delivery_date' => now()->addDays(7),
+                    'status' => 'Pending',
+                    'purchase_number' => $this->generateUniquePurchaseNumber(),
+                    'quantity' => $inventory->original_quantity,
+                    'total_price' => $inventory->original_quantity * $item->unit_price
+                ]);
+            } else {
+                $purchaseOrder->quantity += $inventory->original_quantity;
+                $purchaseOrder->total_price += $inventory->original_quantity * $item->unit_price;
+                $purchaseOrder->save();
+            }
 
-            // if ($purchaseOrder) {
-            //     $this->updatePurchaseOrder($purchaseOrder, $inventory);
-            // } else {
-            //     $this->createPurchaseOrder($inventory);
-            // }
 
-            $purchaseOrder = PurchaseOrder::create([
-                'SupplierId' => $inventory->SupplierId,
-                'order_date' => now(),
-                'delivery_date' => now()->addDays(7),
-                'status' => 'Pending',
-                'purchase_number' => $this->generateUniquePurchaseNumber(),
-                'quantity' => $inventory->original_quantity,
-                'total_price' => $inventory->original_quantity * $inventory->item->unitPrice
-            ]);
 
 
             PurchaseItem::create([
                 'purchase_order_id' => $purchaseOrder->purchase_order_id,
-                'itemID' => $inventory->itemID,
+                'itemID' => $item->itemID,
                 'quantity' => $inventory->original_quantity,
-                'unit_price' => $inventory->item->unitPrice,
-                'total_price' => $inventory->original_quantity * $inventory->item->unitPrice
+                'unit_price' => $item->unit_price,
+                'total_price' => $inventory->original_quantity * $item->unit_price
             ]);
 
             // $purchaseOrder->items()->create([
@@ -220,7 +254,7 @@ class InventoryManagement extends Component
 
             $inventory->save();
 
-            session()->flash('message-status', 'Re-order has been confirmed successfully for Item: ' . $inventory->item->itemName);
+            session()->flash('message-status', 'Re-order has been confirmed successfully for Item: ' . $item->item->itemName);
         } else {
             session()->flash('message-status', 'Inventory item not found');
         }
@@ -228,53 +262,53 @@ class InventoryManagement extends Component
 
     protected function updatePurchaseOrder($inventory)
     {
-        if ($inventory->qtyonhand > 0) {
-            $purchaseOrder = PurchaseOrder::create([
-                'SupplierId' => $inventory->itemID,
-                'order_date' => now(),
-                'delivery_date' => now()->addDays(7),
-                'status' => 'Pending'
-            ]);
+        // if ($inventory->inventoryItems > 0) {
+        //     $purchaseOrder = PurchaseOrder::create([
+        //         'SupplierId' => $inventory->itemID,
+        //         'order_date' => now(),
+        //         'delivery_date' => now()->addDays(7),
+        //         'status' => 'Pending'
+        //     ]);
 
-            PurchaseItem::create([
-                'purchase_order_id' => $purchaseOrder->purchase_order_id,
-                'itemID' => $inventory->itemID,
-                'quantity' => $inventory->qtyonhand,
-                'unit_price' => $inventory->item->unitPrice,
-                'total_price' => $inventory->qtyonhand * $inventory->item->unitPrice
-            ]);
+        //     PurchaseItem::create([
+        //         'purchase_order_id' => $purchaseOrder->purchase_order_id,
+        //         'itemID' => $inventory->itemID,
+        //         'quantity' => $inventory->qtyonhand,
+        //         'unit_price' => $inventory->item->unitPrice,
+        //         'total_price' => $inventory->qtyonhand * $inventory->item->unitPrice
+        //     ]);
 
-            // Log to StockCard (Quantity In)
-            StockCard::create([
-                'inventoryId' => $inventory->inventoryId,
-                'DateReceived' => now(),
-                'QuantityIn' => $inventory->qtyonhand,
-                'QuantityOut' => 0,
-                'Type' => 'Order',
-                'ValueIn' => $inventory->qtyonhand * $inventory->item->unitPrice,
-                'Remarks' => 'Received'
-            ]);
-        }
+        //     // Log to StockCard (Quantity In)
+        //     StockCard::create([
+        //         'inventoryId' => $inventory->inventoryId,
+        //         'DateReceived' => now(),
+        //         'QuantityIn' => $inventory->qtyonhand,
+        //         'QuantityOut' => 0,
+        //         'Type' => 'Order',
+        //         'ValueIn' => $inventory->qtyonhand * $inventory->item->unitPrice,
+        //         'Remarks' => 'Received'
+        //     ]);
+        // }
     }
 
     protected function createPurchaseOrder($inventory)
     {
-        if ($inventory->qtyonhand > 0) {
-            $purchaseOrder = PurchaseOrder::create([
-                'SupplierId' => $inventory->itemID,
-                'order_date' => now(),
-                'delivery_date' => now()->addDays(7),
-                'status' => 'Pending',
-            ]);
+        // if ($inventory->qtyonhand > 0) {
+        //     $purchaseOrder = PurchaseOrder::create([
+        //         'SupplierId' => $inventory->itemID,
+        //         'order_date' => now(),
+        //         'delivery_date' => now()->addDays(7),
+        //         'status' => 'Pending',
+        //     ]);
 
-            PurchaseItem::create([
-                'purchase_order_id' => $purchaseOrder->purchase_order_id,
-                'itemID' => $inventory->itemID,
-                'quantity' => $inventory->qtyonhand,
-                'unit_price' => $inventory->item->unitPrice,
-                'total_price' => $inventory->qtyonhand * $inventory->item->unitPrice,
-            ]);
-        }
+        //     PurchaseItem::create([
+        //         'purchase_order_id' => $purchaseOrder->purchase_order_id,
+        //         'itemID' => $inventory->itemID,
+        //         'quantity' => $inventory->qtyonhand,
+        //         'unit_price' => $inventory->item->unitPrice,
+        //         'total_price' => $inventory->qtyonhand * $inventory->item->unitPrice,
+        //     ]);
+        // }
     }
 
     public function cancelReorder($inventoryId)
@@ -316,6 +350,16 @@ class InventoryManagement extends Component
         }
     }
 
+    public function showReorderCard()
+    {
+        $this->reorderCard = true;
+    }
+
+    public function closeReorderCard()
+    {
+        $this->reorderCard = false;
+    }
+
     public function closeStockModal()
     {
         $this->showStockCardModal = false;
@@ -339,31 +383,83 @@ class InventoryManagement extends Component
         $this->adjustInventory = true;
     }
 
-    public function saveSaleReturn(){
+    public function saveSaleReturn()
+    {
+        // Fetch the inventory items associated with the selected item adjustment
+        $inventoryItems = InventoryItem::with('purchaseItem.purchaseOrders')
+            ->where('itemID', $this->selectedItemAdjustment)
+            ->where('quantity', '>', 0)
+            ->get();
 
-        $inventory = Inventory::find($this->selectedItemAdjustment);
+        // Check if there are any inventory items available
+        if ($inventoryItems->isEmpty()) {
+            session()->flash('message-status', 'Inventory item not found or has zero quantity.');
+            return;
+        }
 
-        $inventory->qtyonhand -= $this->quantity;
+        $totalAvailableQuantity = $inventoryItems->sum('quantity');
 
-        // Save the adjusted inventory
-        $inventory->save();
-        // Create a new StockCard record
+        if ($this->quantity <= 0) {
+            session()->flash('message-status', 'Invalid quantity');
+            return;
+        }
+
+        if ($this->remarks == null) {
+            session()->flash('message-status', 'Please select a remark');
+            return;
+        }
+
+        // Validate if the total requested quantity exceeds the available quantity
+        if ($this->quantity > $totalAvailableQuantity) {
+            session()->flash('message-status', 'Requested quantity exceeds available inventory.');
+            return;
+        }
+
+        $remainingQuantity = $this->quantity;
+        $totalValue = 0;
+        $supplierId = null;
+
+        foreach ($inventoryItems as $inventory) {
+
+            if ($inventory->quantity >= $remainingQuantity) {
+
+                $inventory->quantity -= $remainingQuantity;
+                $totalValue += $inventory->item->selling_price * $remainingQuantity;
+                $supplierId = optional($inventory->purchaseItem->first()->purchaseOrders->first())->SupplierId;
+                $inventory->save();
+
+                break;
+            } else {
+
+                $totalValue += $inventory->item->selling_price * $inventory->quantity;
+                $remainingQuantity -= $inventory->quantity;
+                $supplierId = optional($inventory->purchaseItem->first()->purchaseOrders->first())->SupplierId;
+                $inventory->quantity = 0;
+                $inventory->save();
+            }
+        }
+
+
         StockCard::create([
             'DateReceived' => now(),
             'Type' => 'Sales Return',
-            'Value' => $inventory->item->sellingPrice * $this->quantity,
-            'Quantity' => $this->quantity,
-            'supplierItemID' => $inventory->SupplierId,
-            'inventoryId' => $inventory->inventoryId,
+            'Value' => $totalValue,
+            'Quantity' => $this->quantity - $remainingQuantity,
+            'supplierItemID' => $supplierId,
+            'inventory_item_id' => $inventory->inventory_item_id,
             'Remarks' => $this->remarks,
         ]);
 
 
+        if ($remainingQuantity > 0) {
+            session()->flash('message-status', 'Sales Return has been partially processed. Remaining: ' . $remainingQuantity);
+        } else {
+            session()->flash('message-status', 'Sales Return has been updated successfully');
+        }
+
         $this->showStockCardModal = false;
-
-        session()->flash('message-status', 'Sales Return has been updated successfully');
-
     }
+
 
     public function saveUpdate()
     {
@@ -373,27 +469,29 @@ class InventoryManagement extends Component
         ]);
 
 
-        // Get the inventory item
-        $inventory = Inventory::find($this->selectedItemAdjustment);
+        $inventory = InventoryItem::with('purchaseItem.purchaseOrders')
+            ->where('itemID', $this->selectedItemAdjustment)
+            ->where('quantity', '>', 0)
+            ->first();
 
-        // Adjust the inventory quantity based on remarks
+
         switch ($this->remarks) {
             case 'StockIn':
-                $inventory->qtyonhand += $this->quantity;
+                $inventory->quantity += $this->quantity;
                 $stockCardType = 'StockIn';
+                $value = $inventory->item->sellingPrice * $this->quantity;
                 break;
 
             case 'StockOut':
-                // Ensure sufficient quantity before subtracting
-                if ($inventory->qtyonhand < $this->quantity) {
-                    return response()->json(['error' => 'Insufficient inventory'], 400);
-                }
-                $inventory->qtyonhand -= $this->quantity;
+                // // Ensure sufficient quantity before subtracting
+
+                $inventory->quantity -= $this->quantity;
                 $stockCardType = 'StockOut';
+                $value = $inventory->item->sellingPrice * $this->quantity;
                 break;
 
             case 'Sales Return':
-                $inventory->qtyonhand += $this->quantity;
+                $inventory->quantity += $this->quantity;
                 // Assuming the selling price is stored in the item relation
                 $value = $inventory->item->sellingPrice * $this->quantity;
                 $stockCardType = 'SalesReturn';
@@ -405,14 +503,15 @@ class InventoryManagement extends Component
 
         // Save the adjusted inventory
         $inventory->save();
-        // Create a new StockCard record
+        $supplierId = optional($inventory->purchaseItem->first()->purchaseOrders->first())->SupplierId;
         StockCard::create([
             'DateReceived' => now(),
             'Type' => $stockCardType,
-            'Value' => $stockCardType === 'SalesReturn' ? $value : 0,
+            'Value' => $value,
             'Quantity' => $this->quantity,
-            'supplierItemID' => $inventory->SupplierId,
-            'inventoryId' => $inventory->inventoryId,
+            'supplierItemID' => $supplierId,
+            'inventory_item_id' => $inventory->inventoryId,
+
             'Remarks' => $this->remarks,
         ]);
 
@@ -422,6 +521,69 @@ class InventoryManagement extends Component
         session()->flash('message-status', 'Stock Card has been updated successfully');
     }
 
+    public function saveBulkOrder()
+    {
 
 
+        foreach ($this->selectedItems as $inventoryId) {
+            // Find the inventory record by its ID
+            $inventory = Inventory::with('inventoryItem', 'inventoryItem.item', 'purchaseOrders')
+                ->find($inventoryId); // Use the current ID from selectedItems
+
+            if (!$inventory) {
+                session()->flash('message-status', 'Inventory item not found for ID: ' . $inventoryId);
+                continue; // Skip this iteration if inventory not found
+            }
+
+            // Fetch the latest InventoryItem associated with this inventory
+            $item = InventoryItem::with(['purchaseItem', 'purchaseItem.purchaseOrders'])
+                ->where('inventoryId', $inventoryId)
+                ->orderBy('inventory_item_id', 'desc') // Ensure 'inventory_item_id' is the correct column
+                ->first();
+
+            // Fetch the latest PurchaseOrder for this Supplier
+            $purchaseOrder = PurchaseOrder::where('SupplierId', $inventory->SupplierId)
+                ->latest('purchase_order_id')
+                ->first();
+
+            // Logic to handle the purchase order creation/updating
+            if ($purchaseOrder) {
+                if ($purchaseOrder->status == 'Completed' || $purchaseOrder->status == 'Cancelled') {
+                    // Create a new purchase order
+                    $purchaseOrder = PurchaseOrder::create([
+                        'SupplierId' => $purchaseOrder->SupplierId,
+                        'order_date' => now(),
+                        'delivery_date' => now()->addDays(7),
+                        'status' => 'Pending',
+                        'purchase_number' => $this->generateUniquePurchaseNumber(),
+                        'quantity' => $inventory->original_quantity,
+                        'total_price' => $inventory->original_quantity * $item->unit_price
+                    ]);
+                } else {
+                    // Update existing purchase order
+                    $purchaseOrder->quantity += $inventory->original_quantity;
+                    $purchaseOrder->total_price += $inventory->original_quantity * $item->unit_price;
+                    $purchaseOrder->save();
+                }
+
+                // Create a new PurchaseItem
+                PurchaseItem::create([
+                    'purchase_order_id' => $purchaseOrder->purchase_order_id,
+                    'itemID' => $item->itemID,
+                    'quantity' => $inventory->original_quantity,
+                    'unit_price' => $item->unit_price,
+                    'total_price' => $inventory->original_quantity * $item->unit_price
+                ]);
+
+                // Update inventory status
+                $inventory->status = 'Re-ordered';
+                $inventory->save();
+
+                // Flash a success message
+                session()->flash('message-status', 'Re-order has been confirmed successfully for Item: ' . $item->item->itemName);
+            } else {
+                session()->flash('message-status', 'No purchase orders found for Supplier ID: ' . $inventory->SupplierId);
+            }
+        }
+    }
 }

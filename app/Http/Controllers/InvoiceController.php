@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\StockCard;
 use App\Models\Inventory;
+use App\Models\InventoryItem;
 use App\Models\Item;
 use App\Models\PurchaseOrder;
 use App\Models\Transactions;
@@ -37,7 +38,7 @@ class InvoiceController extends Controller
     public function printOrderReceipt($purchase_number)
     {
 
-        $purchaseOrder = PurchaseOrder::with(['supplier', 'items.item'])
+        $purchaseOrder = PurchaseOrder::with(['supplier', 'items.item', 'purchaseItems'])
             ->where('purchase_number', $purchase_number)
             ->first();
 
@@ -78,16 +79,11 @@ class InvoiceController extends Controller
         $endDate = $request->input('end_date') ?? null;
 
 
-        // Fetch inventory data
-        $inventoryQuery = Inventory::with(['item', 'supplier', 'stockCards'])
-            ->when($startDate, function ($query) use ($startDate) {
-                return $query->where('date_received', '>=', $startDate);
-            })
-            ->when($endDate, function ($query) use ($endDate) {
-                return $query->where('date_received', '<=', $endDate);
-            });
 
-        $inventoryData = $inventoryQuery->get();
+        $inventoryData = InventoryItem::with(['item', 'inventory', 'inventory.supplier', 'purchaseItem'])
+            ->whereDate('received_date', '>=', $startDate)
+            ->whereDate('received_date', '<=', $endDate)
+            ->get();
 
 
         // Load the view with the correct variable name
@@ -135,12 +131,15 @@ class InvoiceController extends Controller
         $end_date = $request->input('end_date') ?? null;
 
         // Fetch all inventory items
-        $inventoryItems = Inventory::with(['item', 'supplier'])->get();
+        $inventoryItems = InventoryItem::with(['item', 'inventory.supplier', 'purchaseItem'])
+        ->whereBetween('received_date', [$start_date, $end_date])
+        ->get();
 
         // Filter items that have reached the reorder point
         $reorderItems = $inventoryItems->filter(function ($item) {
             return $item->qtyonhand <= ($item->original_quantity * 0.3);
         });
+
         $pdf = Pdf::loadView('report.reorder-list-report',  compact('reorderItems', 'start_date', 'end_date'));
 
         // Download the generated PDF
@@ -160,7 +159,6 @@ class InvoiceController extends Controller
         ->when($end_date, function ($query) use ($end_date) {
             return $query->where('delivery_date', '<=', $end_date);
         })->get();
-
 
         $pdf = Pdf::loadView('report.order-list-report',  compact('purchasedOrders', 'start_date', 'end_date'));
 

@@ -32,34 +32,34 @@
         <div class="card mt-2">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table  datanew">
-                        <thead>
-                            <th>RETURN ID</th>
-                            <th>RETURN DATE</th>
-                            <th>INVOICE NO.</th>
-                            <th>RETURNED ITEM</th>
-                            <th>QUANTITY</th>
-                            <th>REASON</th>
-                            <th>PRICE</th>
-                            <th>STATUS</th>
+                <table class="table  datanew">
+                    <thead>
+                        <th>RETURN ID</th>
+                        <th>RETURN DATE</th>
+
+                        <th>RETURNED ITEM</th>
+                        <th>QUANTITY</th>
+                        <th>REASON</th>
+                        <th>PRICE</th>
+                        <th>STATUS</th>
 
 
-                        </thead>
-                        <tbody>
-                        @foreach($stockCards as $stockCard)
-                            <tr>
-                                <td>R00{{ $stockCard->StockCardID }}</td>
-                                <td>{{ \Carbon\Carbon::parse($stockCard->DateReceived)->format('m-d-Y   ') }}</td>
-                                <td>{{ $stockCard->StockCardID }}</td>
-                                <td>{{ $stockCard->item ? $stockCard->item->itemName : 'N/A' }}</td>
-                                <td>{{ $stockCard->Quantity }}</td>
-                                <td>{{ number_format($stockCard->item->sellingPrice ?? 0, 2) }}</td>
-                                <td>{{ number_format($stockCard->Quantity * $stockCard->item->sellingPrice ?? 0, 2)}}</td><!--TOTAL AMOUNT HERE-->
-                                <td>Returned</td>
-                            </tr>
-                        @endforeach
-                        </tbody>
-                    </table>
+                    </thead>
+                    <tbody>
+                    @foreach($stockCards as $stockCard)
+                        <tr>
+                            <td>R00{{ $stockCard->StockCardID }}</td>
+                            <td>{{ \Carbon\Carbon::parse($stockCard->DateReceived)->format('m-d-Y   ') }}</td>
+
+                            <td>{{ $stockCard->item ? $stockCard->item->itemName : 'N/A' }}</td>
+                            <td>{{ $stockCard->Quantity }}</td>
+                            <td>{{ $stockCard->Remarks}}</td>
+                            <td>{{ number_format($stockCard->Value ?? 0, 2)}}</td><!--TOTAL AMOUNT HERE-->
+                            <td>Returned</td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
                 </div>
                 <div class="row justify-content-end">
                     <div class="btn-group col-sm-2 mt-5">

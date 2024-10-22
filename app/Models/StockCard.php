@@ -22,11 +22,12 @@ class StockCard extends Model
         'supplierItemID',
         'inventoryId',
         'Remarks',
+        'inventory_item_id'
     ];
 
     public function inventory()
     {
-        return $this->belongsTo(Inventory::class, 'inventoryId');
+        return $this->belongsTo(InventoryItem::class, 'inventory_item_id');
     }
 
 
@@ -44,4 +45,10 @@ class StockCard extends Model
     {
         return $this->belongsTo(Item::class, 'supplierItemID'); // Make sure the foreign key matches
     }
+
+    public function inventoryItem() // Change to singular as it relates to a single inventory item
+    {
+        return $this->belongsTo(InventoryItem::class, 'inventory_item_id');
+    }
+
 }
