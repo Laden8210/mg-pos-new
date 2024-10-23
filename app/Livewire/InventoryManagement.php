@@ -444,7 +444,7 @@ class InventoryManagement extends Component
             'DateReceived' => now(),
             'Type' => 'Sales Return',
             'Value' => $totalValue,
-            'Quantity' => $this->quantity - $remainingQuantity,
+            'Quantity' => $this->quantity,
             'supplierItemID' => $supplierId,
             'inventory_item_id' => $inventory->inventory_item_id,
             'Remarks' => $this->remarks,

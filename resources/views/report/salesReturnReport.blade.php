@@ -161,7 +161,7 @@
                     <td>R00{{ $stockCard->StockCardID }}</td>
                     <td>{{ \Carbon\Carbon::parse($stockCard->DateReceived)->format('m-d-Y   ') }}</td>
 
-                    <td>{{ $stockCard->item ? $stockCard->item->itemName : 'N/A' }}</td>
+                    <td>{{ $stockCard->inventoryItem ? $stockCard->inventoryItem->item->itemName : 'N/A' }}</td>
                     <td>{{ $stockCard->Quantity }}</td>
                     <td>{{ $stockCard->Remarks}}</td>
                     <td>{{ number_format($stockCard->Value ?? 0, 2)}}</td><!--TOTAL AMOUNT HERE-->
