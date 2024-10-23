@@ -53,6 +53,6 @@ class Item extends Model
 
     public function inventoryItem()
     {
-        return $this->hasMany(inventoryItem::class, 'itemID', 'itemID');
+        return $this->hasMany(InventoryItem::class, 'itemID', 'itemID');
     }
 }
