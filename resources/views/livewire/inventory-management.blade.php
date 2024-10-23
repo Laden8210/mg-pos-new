@@ -47,7 +47,7 @@
                                 <th class="text-center">QTY on Hand</th>
 
                                 <th class="text-center">Reorder Point</th>
-                                <th class="text-center">Action</th>
+
 
                                 </tr>
                             </thead>
@@ -94,29 +94,7 @@
                                             @endif
 
                                         </td>
-                                        <td class="text-center">
 
-                                            @if ($inventory->total_qtyonhand <= $reorderPoint)
-                                                <button class="btn btn-secondary dropdown-toggle" type="button"
-                                                    id="dropdownMenuButton{{ $inventory->inventoryId }}"
-                                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                                    Action
-                                                </button>
-                                                <ul class="dropdown-menu"
-                                                    aria-labelledby="dropdownMenuButton{{ $inventory->inventoryId }}">
-                                                    <li><a class="dropdown-item" href="#"
-                                                            wire:click.prevent="confirmReorder({{ $inventory->inventoryId }})">Re-order</a>
-                                                    </li>
-
-                                                    <li><a class="dropdown-item" href="#"
-                                                            wire:click.prevent="cancelReorder({{ $inventory->inventoryId }})">Cancel</a>
-                                                    </li>
-                                                </ul>
-                                            @else
-                                                {{ $inventory->status }}
-                                                <span>No Action Needed</span>
-                                            @endif
-                                        </td>
 
                                     </tr>
                                 @empty
