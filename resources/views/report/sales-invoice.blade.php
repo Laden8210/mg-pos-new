@@ -127,7 +127,7 @@
 
                 @foreach ($invoiceData->transactions as $transaction)
                     <tr>
-                        <td>{{ str_replace('+', ' ', $transaction->item->name) }}</td>
+                        <td>{{ str_replace('+', ' ', $transaction->item->itemName) }}</td>
                         <td>P {{ number_format($transaction->selling_price, 2) }}</td>
                         <td>{{ $transaction->quantity }}</td>
                         <td>P {{ number_format($transaction->selling_price * $transaction->quantity, 2) }}</td>
@@ -141,20 +141,21 @@
 
         <div class="total-container" style="display: flex; justify-content: space-between;">
             <h4 style="margin: 0;">SubTotal</h4>
-            <h2 style="margin: 0; text-align: right;">P {{ number_format($invoiceData->subtotal, 2) }}</h2>
+            <h2 style="margin: 0; text-align: right;">P {{ number_format($invoiceData->subtotal -$invoiceData->vat, 2) }}</h2>
         </div>
         <hr>
 
+
+        <div class="total-container" style="display: flex; justify-content: space-between;">
+            <h4 style="margin: 0;">Vat</h4>
+            <h4 style="margin: 0; text-align: right;">P {{ number_format($invoiceData->vat ?? 0, 2) }}</h4>
+        </div>
         <div class="total-container" style="display: flex; justify-content: space-between;">
             <h3 style="margin: 0;">Total</h3>
             <h2 style="margin: 0; text-align: right;">P {{ number_format($invoiceData->total_amount, 2) }}</h2>
         </div>
         <hr>
 
-        <div class="total-container" style="display: flex; justify-content: space-between;">
-            <h4 style="margin: 0;">Vat</h4>
-            <h4 style="margin: 0; text-align: right;">P {{ number_format($invoiceData->vat ?? 0, 2) }}</h4>
-        </div>
 
         <div class="total-container" style="display: flex; justify-content: space-between;">
             <h4 style="margin: 0;">Cash</h4>

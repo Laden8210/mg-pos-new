@@ -7,6 +7,7 @@ use App\Models\Item;
 use App\Models\StockCard;
 use App\Models\SaleTransactionModel;
 use App\Models\Inventory;
+use App\Models\InventoryItem;
 use App\Models\Transactions;
 use Illuminate\Support\Facades\Auth;
 
@@ -49,7 +50,7 @@ class SaleTransaction extends Component
 
     public function fetchAllInventory()
     {
-        $this->inventoryDetails = Inventory::with('item')->get();
+        $this->inventoryDetails = InventoryItem::with('item')->get();
     }
 
     public function toggleInventory()
@@ -131,7 +132,7 @@ class SaleTransaction extends Component
     public function addToCart($itemId)
     {
         // Retrieve the inventory item with the related item
-        $item = Inventory::with('item')
+        $item = InventoryItem::with('item')
         ->where('itemID', $itemId) // Directly filter by itemID
         ->first();
 
@@ -145,7 +146,7 @@ class SaleTransaction extends Component
         }
 
         // Sum qtyonhand for all related inventory records
-        $totalQtyOnHand = Inventory::where('itemID', $item->itemID)->sum('qtyonhand');
+        $totalQtyOnHand = InventoryItem::where('itemID', $item->itemID)->sum('quantity');
 
         // Check if the item is out of stock
         if ($totalQtyOnHand <= 0) {
@@ -159,7 +160,7 @@ class SaleTransaction extends Component
             // Check if there's enough stock available to add to the cart
             if ($this->cart[$item->itemID]['quantity'] < $totalQtyOnHand) {
                 $this->cart[$item->itemID]['quantity']++;
-                $this->cart[$item->itemID]['subtotal'] = $this->cart[$item->itemID]['quantity'] * $this->cart[$item->itemID]['price'];
+                $this->cart[$item->itemID]['subtotal'] = $this->cart[$item->itemID]['quantity'] * $this->cart[$item->item->itemID]['price'];
             } else {
                 session()->flash('error', 'Not enough stock available.');
                 $this->barcode = ""; // Clear barcode input
@@ -168,11 +169,11 @@ class SaleTransaction extends Component
         } else {
             // Add new item to the cart
             $this->cart[$item->itemID] = [
-                'id' => $item->itemID,
+                'id' => $item->item->itemID,
                 'name' => $item->item->itemName,
-                'price' => $item->item->unitPrice,
+                'price' => $item->selling_price,
                 'quantity' => 1,
-                'subtotal' => $item->item->unitPrice,
+                'subtotal' => $item->selling_price,
             ];
         }
 
@@ -226,10 +227,10 @@ class SaleTransaction extends Component
 
 
         foreach ($this->cart as $cartItem) {
-            $item = Inventory::where('itemID', $cartItem['id'])->first();
+            $item = InventoryItem::where('itemID', $cartItem['id'])->first();
             if ($item) {
                 // Decrease the quantity
-                $item->qtyonhand -= $cartItem['quantity'];
+                $item->quantity -= $cartItem['quantity'];
                 $item->save();
 
                 for ($i = 0; $i < $cartItem['quantity']; $i++) {
@@ -242,7 +243,7 @@ class SaleTransaction extends Component
                     'Value' => $cartItem['price'] * $cartItem['quantity'], // Use individual item price to avoid subtotal issues
                     'Quantity' => $cartItem['quantity'],
                     'supplierItemID' => $cartItem['id'],
-                    'inventoryId' => $item->inventoryId,
+                    'inventory_item_id' => $item->inventory_item_id,
                     'Remarks' => "Sent",
                 ]);
 
